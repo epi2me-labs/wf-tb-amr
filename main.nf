@@ -178,12 +178,13 @@ process whatshap {
 process countReadsRegions {
     label "microbial"
     input:
+        path amplicons_bed
         tuple val(sample_id), val(type), path(bam), path(bai)
     output:
         tuple val(sample_id), val(type), path("${sample_id}.bedtools-coverage.bed"), emit: bed_files
 
     """
-    samtools view -q 1 -bh ${bam} | bedtools coverage -d -a ${params._amplicons_bed} -b - > ${sample_id}.bedtools-coverage.bed
+    samtools view -q 1 -bh ${bam} | bedtools coverage -d -a ${amplicons_bed} -b - > ${sample_id}.bedtools-coverage.bed
     """
 }
 
@@ -350,7 +351,7 @@ workflow pipeline {
         whatshap_result = whatshap(reference, genbank, variant_db, vcf_template, bcf_annotate_template, mpileup_result)
 
         // do some coverage calcs
-        region_read_count = countReadsRegions(alignments[0])
+        region_read_count = countReadsRegions(amplicons_bed, alignments[0])
 
         samples_region = region_read_count.bed_files.map{it[0]}.collect().map{it.join(' ')}
         types = region_read_count.bed_files.map{it[1]}.collect().map{it.join(' ')}
