@@ -1,7 +1,5 @@
-# Workflow template
+# wf-tb-amr | MTBC Antimicrobial Resistance Testing
 
-This repository contains a [nextflow](https://www.nextflow.io/) workflow
-template that can be used as the basis for creating new workflows.
-
-> This workflow is not intended to be used by end users.
-
+This repository contains a [nextflow](https://www.nextflow.io/) workflow for
+running the MTBC workflow on multiplexed MinION, GridION, and
+PromethION runs.

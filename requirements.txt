@@ -1,0 +1,8 @@
+pytest
+pyyaml
+aplanat
+qrcode
+biopython
+pyvcf
+numpy
+pandas

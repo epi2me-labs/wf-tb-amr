@@ -1,12 +1,28 @@
-name: epi2melabs-nf-template-workflow
+name: epi2melabs-wf-tb-amr
 channels:
     - epi2melabs
     - bioconda
     - conda-forge
     - defaults
 dependencies:
-    - python==3.8.*
-    - aplanat >=0.5.0
-    - pysam >=0.17.0
-    - fastcat
+    - aplanat >=0.6.8
+    - pandas ==1.3.5
+    - fastcat ==0.4.10
+    - minimap2 ==2.23
+    - samtools ==1.12
+    - seqkit ==2.1.0
+    - pomoxis >=0.3.6
+    - pyfaidx ==0.6.3.1
+    - bedtools ==2.30.0
+    - mosdepth ==0.3.2
+    - pyranges ==0.0.113
+    - epi2melabs ==0.0.16
+    - pyvcf ==0.6.8
+    - whatshap ==1.2.1
+    - biopython ==1.79
+    - bcftools ==1.12
+    - openpyxl ==3.0.9
     - epi2melabs
+    - qrcode[pil]
+    - pytest
+    - vcf-annotator

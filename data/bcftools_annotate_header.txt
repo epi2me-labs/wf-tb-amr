@@ -1,0 +1,37 @@
+##INFO=<ID=INDEL,Number=0,Type=Flag,Description="Indicates that the variant is an INDEL.">
+##INFO=<ID=AA,Number=1,Type=String,Description="Amino acid change">
+##INFO=<ID=CODON_NUMBER,Number=1,Type=String,Description="Amino acid position">
+##INFO=<ID=ANTIBIOTICS,Number=.,Type=String,Description="WHO antibiotic resistance rating: <ANTIBIOTIC>|<RATING>">
+##INFO=<ID=GENE,Number=1,Type=String,Description="Gene">
+##INFO=<ID=GENE_LOCUS,Number=1,Type=String,Description="Locus name of gene in NCBI genbank">
+##INFO=<ID=HGVS_NUCLEOTIDE,Number=1,Type=String,Description="HGVS annotation of the nucleotide change">
+##INFO=<ID=HGVS_PROTEIN,Number=1,Type=String,Description="HGVS annotation of the protein change">
+##INFO=<ID=PROTEIN_ID,Number=1,Type=String,Description="NCBI genbank protein ID">
+##INFO=<ID=EFFECT,Number=1,Type=String,Description="Effect on protein">
+##INFO=<ID=STRAND,Number=1,Type=String,Description="Strand of gene,1=+ve,-1=-ve">
+##INFO=<ID=FEATURE_TYPE,Number=1,Type=String,Description="Feature type as defined by NCBI i.e. CDS or rRNA">
+##INFO=<ID=ORIGIN,Number=1,Type=String,Description="Listed in 'WHO_CANONICAL' or 'WHO_NONCANONICAL'">
+##INFO=<ID=WHO_POS,Number=1,Type=String,Description="Variants, even if not coding are described sometimes by their 'codon' position, this makes it easy to see which variant is being considered">
+##INFO=<ID=INDEL,Number=0,Type=Flag,Description="Indicates that the variant is an INDEL.">
+##INFO=<ID=IDV,Number=1,Type=Integer,Description="Maximum number of raw reads supporting an indel">
+##INFO=<ID=IMF,Number=1,Type=Float,Description="Maximum fraction of raw reads supporting an indel">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Raw read depth">
+##INFO=<ID=VDB,Number=1,Type=Float,Description="Variant Distance Bias for filtering splice-site artefacts in RNA-seq data (bigger is better)",Version="3">
+##INFO=<ID=RPBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Read Position Bias (closer to 0 is better)">
+##INFO=<ID=MQBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Mapping Quality Bias (closer to 0 is better)">
+##INFO=<ID=BQBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Base Quality Bias (closer to 0 is better)">
+##INFO=<ID=MQSBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Mapping Quality vs Strand Bias (closer to 0 is better)">
+##INFO=<ID=SCBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Soft-Clip Length Bias (closer to 0 is better)">
+##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test to detect strand bias">
+##INFO=<ID=SGB,Number=1,Type=Float,Description="Segregation based metric.">
+##INFO=<ID=MQ0F,Number=1,Type=Float,Description="Fraction of MQ0 reads (smaller is better)">
+##INFO=<ID=I16,Number=16,Type=Float,Description="Auxiliary tag used for calling, see description of bcf_callret1_t in bam2bcf.h">
+##INFO=<ID=QS,Number=R,Type=Float,Description="Auxiliary tag used for calling">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="List of Phred-scaled genotype likelihoods">
+##INFO=<ID=AD,Number=R,Type=Integer,Description="Total allelic depths (high-quality bases)">
+##INFO=<ID=ADF,Number=R,Type=Integer,Description="Total allelic depths on the forward strand (high-quality bases)">
+##INFO=<ID=ADR,Number=R,Type=Integer,Description="Total allelic depths on the reverse strand (high-quality bases)">
+##INFO=<ID=AF,Number=1,Type=Float,Description="Alternative allele frequency">
+##INFO=<ID=FS_SB,Number=1,Type=Float,Description="STRAND_BIAS is greater than the cut-off">
+##INFO=<ID=REF_CODON,Number=1,Type=String,Description="Reference codon">
+##INFO=<ID=ALT_CODON,Number=1,Type=String,Description="Alt Codon">

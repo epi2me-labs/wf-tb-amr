@@ -1,0 +1,264 @@
+{
+  "misc_language":{
+    "resistant": "Resistant",
+    "susceptible": "Susceptible",
+    "fail": "fail",
+    "pass": "pass",
+    "status": "status",
+    "ntc_threshold": "Any sample labelled as no_template_control on the sample sheet are subject to thresholds ({direction}{coverage} median coverage in {direction}{targets} targets = fail) which determine test validity. Multiple no_template_control samples can be used.",
+    "positive_threshold": "Any sample labelled as positive_control on the sample sheet are subject to thresholds ({direction}{coverage} median coverage in {direction}{targets} targets = fail) which determine test validity. Multiple positive_control samples can be used .",
+    "sample_threshold": "Based on set thresholds ({direction}{coverage} median coverage in {direction}{targets}) this section describes whether TB is likely present, absent or present below the limit of detection."
+  },
+  "appendix":{
+    "intro": "This report lists additional SNPs or additional potential antimicrobial resistance for SNPs already included on other reports for the WHO grades 2 and 3."
+  },
+  "who_groups":{
+    "1": {
+        "name": "Group 1: Associated with resistance - All targets in assay.",
+        "blurb" : "Mutations that met five criteria",
+        "criteria": {
+          "1": "sum of resistant and susceptible isolates with the solo mutation (Present_SOLO_SR) ≥ 5 (red)",
+          "2": "lower bound of 95% CI of PPV conditional on being solo (PPV|SOLO_lb) ≥ 25% (red)",
+          "3": "OR > 1, which always applies if criterion 4 is met (red)",
+          "4": "OR SOLO > 1 (red)",
+          "5": "statistical significance of OR SOLO (OR SOLO_FE-sig) with Fisher exact FDR-corrected P ≤ 0.05 (red)"
+      }
+    },
+    "2": {
+        "name": "Group 2: Associated with resistance – interim - All targets in assay.",
+        "blurb" : "Mutations that met “relaxed” criteria for pncA",
+        "criteria": {
+          "1": "resistant isolates with the solo mutation (Present_SOLO_R) ≥ 2 (yellow)",
+          "2": "PPV ≥ 50% (yellow)"
+        }
+    },
+    "3": {
+        "name": "Group 3: Uncertain significance - Restricted to rplC, rrl, and rv0678 in this assay.",
+        "blurb" : "Mutations that did not meet the criteria for inclusion in group 1, 2, 4 or 5.",
+        "criteria": {}
+    },
+    "4": {
+        "name": "Group 4: Not associated with resistance – Interim  ",
+        "blurb" : "Mutations that met “relaxed” criteria for pncA",
+        "criteria": {
+          "1": "PPV conditional on being solo (PPV|SOLO) < 40% (blue)",
+          "2": "Upper bound of 95% CI of PPV conditional on being solo (PPV|SOLO_ub) < 75% (blue)"
+        }
+    },
+    "5": {
+        "name": "Group 5: Not associated with resistance",
+        "blurb" : "Neutral mutations that were masked before use of the algorithm.",
+        "criteria": {}
+    }
+  },
+  "antibiotics":{
+    "KAN":{
+      "full-name": "kanamycin",
+      "group": "",
+      "drug-class": "injectable",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "True"
+    },
+    "AMI":{
+      "full-name": "amikacin",
+      "group": "",
+      "drug-class": "injectable",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "True"
+    },
+    "CAP":{
+      "full-name": "capreomycin",
+      "group": "",
+      "drug-class": "injectable",
+      "who-class": "",
+      "line":"first-line",
+      "in-assay": "True"
+    },
+    "CIP":{
+      "full-name": "ciprofloxacin",
+      "group": "",
+      "drug-class": "fluoroquinolones",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "False"
+    },
+    "ETH":{
+      "full-name": "ethionamide",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "True"
+    },
+    "PTH":{
+      "full-name": "prothionamide",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "False"
+    },
+    "EMB":{
+      "full-name": "ethambutol",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"first-line",
+      "in-assay": "True"
+    },
+    "INH":{
+      "full-name": "isoniazid",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"first-line",
+      "in-assay": "True"
+    },
+    "RIF":{
+      "full-name": "rifampicin",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"first-line",
+      "in-assay": "True"
+    },
+    "PZA":{
+      "full-name": "pyrazinamide",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"first-line",
+      "in-assay": "True"
+    },
+    "BDQ":{
+      "full-name": "bedaquiline",
+      "group": "A",
+      "drug-class": "",
+      "who-class": "",
+      "line":"none",
+      "in-assay": "True"
+    },
+    "LZD":{
+      "full-name": "linezolid",
+      "group": "A",
+      "drug-class": "",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "True"
+    },
+    "CFZ":{
+      "full-name": "clofazamine",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"none",
+      "in-assay": "True"
+    },
+    "MXF":{
+      "full-name": "moxifloxacin",
+      "group": "A",
+      "drug-class": "fluoroquinolones",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "True"
+    },
+    "LEV":{
+      "full-name": "levofloxacin",
+      "group": "A",
+      "drug-class": "fluoroquinolones",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "True"
+    },
+    "DLM":{
+      "full-name": "delamanid",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"none",
+      "in-assay": "False"
+    },
+    "STM":{
+      "full-name": "streptomycin",
+      "group": "",
+      "drug-class": "",
+      "who-class": "",
+      "line":"second-line",
+      "in-assay": "True"
+    }
+  },
+  "sections":{
+    "drug_susceptibility": {
+      "title": "Drug Susceptibility",
+      "blurb": "Resistance is reported when a high likelihood resistance confirming mutation is detected in the loci of interest<sup>2</sup>. <strong>No mutation detected does not exclude the possibility of resistance<sup>3</sup>.</strong>",
+      "result": {
+        "NONE": "No mutations detected",
+        "RES": "Mutations detected, not MDR, pre-XDR, or XDR",
+        "RR": "Rifampicin resistant TB",
+        "MDR": "Multi-Drug resistant TB",
+        "pre-XDR": "Pre-Extensive drug resistant TB",
+        "XDR": "Extensive drug resistant TB"
+      },
+      "line":{
+        "first-line": "First Line",
+        "second-line": "Second Line",
+        "none": "Other"
+      }
+    },
+    "disclaimer": {
+      "title": "Footnotes",
+      "blurb": "This report is intended for <strong>RESEARCH USE ONLY</strong>. Oxford Nanopore Technologies & Oxford Nanopore Diagnostics products are not intended for use for health assessment or to diagnose, treat, mitigate, cure or prevent any disease or condition.",
+      "disclaimers": [
+        "NTC, positive and the test sample itself must meet pre-set thresholds for a valid test result",
+        "Loci of interest derived from the WHO 'Catalogue of mutations in Mycobacterium tuberculosis compliex and their association with drug resistance'. Single nucleotide polymorphisms that have been associated with resistance and within the assay taregt region included (Group 1). See 'versions' table for details",
+        "SNPs not reported on: rrs c517t, rrs a514c for STM resistance. Genes not targeted embA c-12t for EMB resistance and gyrB E501D for MXF resistance."
+      ]
+    },
+    "final": {
+      "blurb": "",
+      "result": {
+        "positive": "{sample_id} is positive for <strong>Mycobacterium tuberculosis</strong>. It is resistant to {resistance}.",
+        "negative": "{sample_id} is either negative for TB or is present below the limit of detection."
+      }
+    },
+    "controls": {
+      "title": "Assay Validity<sup>1</sup>",
+      "blurb": ""
+    },
+    "assay": {
+      "title": "Assay Details",
+      "blurb": "<ol><li>Loci of interest derived from the WHO 'Catalogue of mutations in Mycobacterium tuberculosis compliex and their association with drug resistance'. Single nucleotide polymorphisms that have been associated with resistance included (Group 1). See 'versions' table for details</li></ol>",
+      "table": {
+        "Platform": "{platform}",
+        "Pipeline": "wf-tb-amr {version}",
+        "Method": "Oxford Nanopore Technologies Genotyping",
+        "Reference": "{reference}",
+        "Barcode": "{barcode}"
+      }
+    },
+    "sample": {
+      "title": "Sample Details",
+      "blurb": "",
+      "qr":"*QR contains a CSV table of sample ID and the resitance status of the sample. The format is as follows: {qr_string}",
+      "table": {
+        "Laboratory ID": "{sample_id}",
+        "Performed By": "<input class=\"form-control\">",
+        "Requested By": "<input class=\"form-control\">",
+        "Report Date": "{report_date}",
+        "Sample Collection Date": "<input class=\"form-control\">"
+      }
+    },
+    "authorisation": {
+      "title": "Authorisation",
+      "blurb": "",
+      "table": {
+        "Name": "<input class=\"form-control\">",
+        "Position": "<input class=\"form-control\">",
+        "Signature": "<input class=\"form-control\">",
+        "Date": "<input class=\"form-control\">"
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 process handleSingleFile {
-    label params.process_label
+    label "microbial"
     cpus 1
     input:
         file reads
@@ -16,7 +16,7 @@ process handleSingleFile {
 
 
 process checkSampleSheet {
-    label params.process_label
+    label "microbial"
     cpus 1
     input:
         file "sample_sheet.txt"
@@ -52,7 +52,7 @@ def handle_single_file(input_file, sample_name)
  * @param pattern file object corresponding to top level input folder.
  * @param maxdepth maximum depth to traverse
  * @return list of files.
- */ 
+ */
 
 def find_fastq(pattern, maxdepth)
 {
@@ -74,7 +74,7 @@ def find_fastq(pattern, maxdepth)
  * @param staging Top-level output_directory.
  * @return A File object representating the staging directory created
  *     under output_folder
- */ 
+ */
 def sanitize_fastq(input_folder, staging)
 {
     // TODO: this fails if input_folder is an S3 path
@@ -102,7 +102,7 @@ def sanitize_fastq(input_folder, staging)
 
 
 /**
- * Take an input directory return the barcode and non barcode 
+ * Take an input directory return the barcode and non barcode
  * sub directories contained within.
  *
  *
@@ -124,7 +124,7 @@ def get_subdirectories(input_directory)
  *
  * @param samples CSV file according to MinKNOW sample sheet specification
  * @return A Nextflow Channel of tuples (barcode, sample name, sample type)
- */ 
+ */
 def get_sample_sheet(sample_sheet)
 {
     println("Checking sample sheet.")
@@ -139,15 +139,15 @@ def get_sample_sheet(sample_sheet)
     return checkSampleSheet(sample_sheet)
         .splitCsv(header: true)
         .map { row -> tuple(
-            row.barcode, 
-            row.sample_id, 
-            row.type ? row.type : 'test_sample') 
+            row.barcode,
+            row.sample_id,
+            row.type ? row.type : 'test_sample')
         }
 }
 
 
 /**
- * Take a list of input directories and return directories which are 
+ * Take a list of input directories and return directories which are
  * valid, i.e. contains only .fastq(.gz) files.
  *
  *
@@ -207,7 +207,7 @@ def get_valid_directories(input_dirs)
  * @param sample_name Name to give the sample
  * @return Channel of tuples (path, sample_id, type)
  */
-def handle_flat_dir(input_directory, sample_name) 
+def handle_flat_dir(input_directory, sample_name)
 {
     valid_dirs= get_valid_directories([ file(input_directory) ])
     return Channel.fromPath(valid_dirs)
@@ -216,7 +216,7 @@ def handle_flat_dir(input_directory, sample_name)
 
 
 /**
- * Take a list of barcode directories and a sample sheet to return 
+ * Take a list of barcode directories and a sample sheet to return
  * a channel of named samples.
  *
  *
@@ -233,19 +233,19 @@ def handle_barcoded_dirs(barcoded_dirs, sample_sheet)
         sample_sheet = Channel
             .fromPath(valid_dirs)
             .filter(~/.*barcode[0-9]{1,3}$/)  // up to 192
-            .map { path -> tuple(path.baseName, path.baseName, 'test_sample') }
+            .map { path -> tuple('test_sample', '', path.baseName, path.baseName) }
     }
     return Channel
         .fromPath(valid_dirs)
         .filter(~/.*barcode[0-9]{1,3}$/)  // up to 192
         .map { path -> tuple(path.baseName, path) }
         .join(sample_sheet)
-        .map { barcode, path, sample, type -> tuple(path, sample, type) }
+        .map { barcode, path, sample, type -> tuple(sample, barcode, path, type) }
 }
 
 
 /**
- * Take a list of non-barcode directories to return a channel 
+ * Take a list of non-barcode directories to return a channel
  * of named samples. Samples are named by directory baseName.
  *
  *
@@ -287,7 +287,7 @@ def fastq_ingress(input, output_folder, sample, sample_sheet, sanitize)
 
     // Handle directory input
     if (input.isDirectory()) {
-        // EPI2ME harness 
+        // EPI2ME harness
         if (sanitize) {
             staging = file(output_folder).resolve("staging")
             input = sanitize_fastq(file(input), staging)

@@ -1,9 +1,9 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
-    "title": "epi2me-labs/wf-template",
-    "description": "Nextflow workflow template repository.",
-    "url": "https://github.com/epi2me-labs/wf-template",
+    "title": "epi2me-labs/wf-tb-amr",
+    "description": "TB Genotyping for Antomicrobial Resistance Detection.",
+    "url": "https://github.com/epi2me-labs/wf-tb-amr",
     "type": "object",
     "definitions": {
         "basic_input_output_options": {
@@ -29,12 +29,78 @@
                 },
                 "sample_sheet": {
                     "type": "string",
+                    "format": "file-path",
                     "description": "CSV file with columns named `barcode`, `sample_name` and `type`. Permissible if passing a directory containing barcodeXX sub-directories."
                 },
                 "sanitize_fastq": {
                     "type": "boolean",
                     "description": "Use additional heuristics to identify barcodes from file paths.",
                     "help_text": "Enabling this option will group together files into samples by the presence of strings of the form `barcodeXXX` present in filenames, rather than simply files grouped into directories (as output by MinKNOW and the Guppy basecaller)."
+                },
+                "maf": {
+                    "type": "number",
+                    "description": "Minimum mutant allele frequencey to consider.",
+                    "default": 0.1
+                },
+                "noncanonical": {
+                    "type": "boolean",
+                    "description": "Report confident noncanonical variants that overlap variants of interest.",
+                    "default": false
+                },
+                "minimum_read_support": {
+                    "type": "integer",
+                    "description": "The minimum number of reads to consider for a variant call on each strand.",
+                    "default": 5
+                },
+                "simplified_bed": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "The location of the amplicons for the assay"
+                },
+                "amplicons_bed": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "The location of the amplicons for the assay"
+                },
+                "variant_db": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Variant db in VCF format (required)"
+                },
+                "genbank": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Genbank file for organism of interest (required)"
+                },
+                "ntc_threshold": {
+                    "type": "string",
+                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,3 - fail is more than 20 reads in more than 3 amplicons",
+                    "default": "20,3"
+                },
+                "sample_threshold": {
+                    "type": "string",
+                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,8 - fail is less than 20 reads in less than 8 amplicons",
+                    "default": "-20,8"
+                },
+                "positive_threshold": {
+                    "type": "string",
+                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,2 - fail is less than 20 reads in less than 2 amplicons",
+                    "default": "-20,2"
+                },
+                "strand_bias": {
+                    "type": "integer",
+                    "description": "Set a threshold for strand bias filtering. Strand bias is represented as a phred scaled p-value from a fishers exact test, closer to 0 is good",
+                    "default": 1000
+                },
+                "reference": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "NCBI accession for reference genome"
+                },
+                "report_config": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Report config file."
                 }
             },
             "required": [
@@ -54,7 +120,7 @@
                 },
                 "disable_ping": {
                     "type": "boolean",
-                    "default": "false",
+                    "default": false,
                     "description": "Enable to prevent sending a workflow ping."
                 }
             }
@@ -87,12 +153,6 @@
         }
     ],
     "properties": {
-        "process_label": {
-            "type": "string",
-            "description": "The main process label for template processes to use by default",
-            "hidden": true,
-            "default": "wf-template"
-        },
         "aws_image_prefix": {
             "type": "string",
             "hidden": true
@@ -103,7 +163,7 @@
         },
         "wfversion": {
             "type": "string",
-            "default": "v0.1.0",
+            "default": "v1.0.0rc",
             "hidden": true
         },
         "monochrome_logs": {
@@ -118,7 +178,7 @@
         }
     },
     "docs": {
-        "intro": "## Introduction\n\nThis section of documentation typically contains an overview of the workflow in terms of motivation\nand bioinformatics methods, listing any key tools or algorithms employed, whilst also describing its\nrange of use-cases and what a suitable input dataset should look like.\n\n",
+        "intro": "## Introduction\n",
         "links": "## Useful links\n\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [conda](https://docs.conda.io/en/latest/miniconda.html)\n"
     }
 }

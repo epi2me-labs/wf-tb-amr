@@ -1,6 +1,6 @@
 
 process pingMessage {
-    label params.process_label
+    label "microbial"
     cpus 1
     input:
         val message

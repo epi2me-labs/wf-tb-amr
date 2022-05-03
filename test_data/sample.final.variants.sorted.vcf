@@ -1,0 +1,52 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##INFO=<ID=INDEL,Number=0,Type=Flag,Description="Indicates that the variant is an INDEL.">
+##INFO=<ID=AA,Number=1,Type=String,Description="Amino acid change">
+##INFO=<ID=CODON_NUMBER,Number=1,Type=String,Description="Amino acid position">
+##INFO=<ID=ANTIBIOTICS,Number=.,Type=String,Description="WHO antibiotic resistance rating: <ANTIBIOTIC>|<RATING>">
+##INFO=<ID=GENE,Number=1,Type=String,Description="Gene">
+##INFO=<ID=GENE_LOCUS,Number=1,Type=String,Description="Locus name of gene in NCBI genbank">
+##INFO=<ID=HGVS_NUCLEOTIDE,Number=1,Type=String,Description="HGVS annotation of the nucleotide change">
+##INFO=<ID=HGVS_PROTEIN,Number=1,Type=String,Description="HGVS annotation of the protein change">
+##INFO=<ID=PROTEIN_ID,Number=1,Type=String,Description="NCBI genbank protein ID">
+##INFO=<ID=EFFECT,Number=1,Type=String,Description="Effect on protein">
+##INFO=<ID=STRAND,Number=1,Type=String,Description="Strand of gene,1=+ve,-1=-ve">
+##INFO=<ID=FEATURE_TYPE,Number=1,Type=String,Description="Feature type as defined by NCBI i.e. CDS or rRNA">
+##INFO=<ID=ORIGIN,Number=1,Type=String,Description="Listed in 'WHO_CANONICAL' or 'WHO_NONCANONICAL'">
+##INFO=<ID=WHO_POS,Number=1,Type=String,Description="Variants, even if not coding are described sometimes by their 'codon' position, this makes it easy to see which variant is being considered">
+##INFO=<ID=IDV,Number=1,Type=Integer,Description="Maximum number of raw reads supporting an indel">
+##INFO=<ID=IMF,Number=1,Type=Float,Description="Maximum fraction of raw reads supporting an indel">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Raw read depth">
+##INFO=<ID=VDB,Number=1,Type=Float,Description="Variant Distance Bias for filtering splice-site artefacts in RNA-seq data (bigger is better)">
+##INFO=<ID=RPB,Number=1,Type=Float,Description="Mann-Whitney U test of Read Position Bias (bigger is better)">
+##INFO=<ID=MQB,Number=1,Type=Float,Description="Mann-Whitney U test of Mapping Quality Bias (bigger is better)">
+##INFO=<ID=BQB,Number=1,Type=Float,Description="Mann-Whitney U test of Base Quality Bias (bigger is better)">
+##INFO=<ID=MQSB,Number=1,Type=Float,Description="Mann-Whitney U test of Mapping Quality vs Strand Bias (bigger is better)">
+##INFO=<ID=RPBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Read Position Bias (closer to 0 is better)">
+##INFO=<ID=MQBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Mapping Quality Bias (closer to 0 is better)">
+##INFO=<ID=BQBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Base Quality Bias (closer to 0 is better)">
+##INFO=<ID=MQSBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Mapping Quality vs Strand Bias (closer to 0 is better)">
+##INFO=<ID=SCBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Soft-Clip Length Bias (closer to 0 is better)">
+##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test to detect strand bias">
+##INFO=<ID=SGB,Number=1,Type=Float,Description="Segregation based metric.">
+##INFO=<ID=MQ0F,Number=1,Type=Float,Description="Fraction of MQ0 reads (smaller is better)">
+##INFO=<ID=I16,Number=16,Type=Float,Description="Auxiliary tag used for calling, see description of bcf_callret1_t in bam2bcf.h">
+##INFO=<ID=QS,Number=R,Type=Float,Description="Auxiliary tag used for calling">
+##INFO=<ID=AD,Number=R,Type=Integer,Description="Total allelic depths (high-quality bases)">
+##INFO=<ID=ADF,Number=R,Type=Integer,Description="Total allelic depths on the forward strand (high-quality bases)">
+##INFO=<ID=ADR,Number=R,Type=Integer,Description="Total allelic depths on the reverse strand (high-quality bases)">
+##INFO=<ID=AF,Number=1,Type=Float,Description="Alternative allele frequency">
+##INFO=<ID=STRAND_BIAS,Number=1,Type=Float,Description="Strand bias, 0.5=no bias">
+##INFO=<ID=REF_CODON,Number=1,Type=String,Description="Reference codon">
+##INFO=<ID=ALT_CODON,Number=1,Type=String,Description="Alt Codon">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="List of Phred-scaled genotype likelihoods">
+##contig=<ID=NC_000962.3>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+NC_000962.3	7581	.	G	C	.	PASS	AA=.;CODON_NUMBER=94;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|1,MXF|1,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=gyrA;GENE_LOCUS=Rv0006;HGVS_NUCLEOTIDE=c.280G>A;HGVS_PROTEIN=p.Asp94Asn;PROTEIN_ID=NP_214520.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=270;VDB=0;RPB=0.766376;MQB=1;BQB=0.262009;MQSB=1;SGB=-0.693147;MQ0F=0;I16=0,2,129,100,32,512,6077,209039,120,7200,13740,824400,50,1250,5725,143125;QS=0.00548039,0.989553;AD=2,227;ADF=128;ADR=99;AF=0.991266;STRAND_BIAS=0.563877
+NC_000962.3	761155	.	C	T	.	PASS	AA=.;CODON_NUMBER=450;ANTIBIOTICS=RIF|1,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=rpoB;GENE_LOCUS=Rv0667;HGVS_NUCLEOTIDE=c.1349C>G;HGVS_PROTEIN=p.Ser450Trp;PROTEIN_ID=NP_215181.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=217;VDB=0;RPB=0.415761;MQB=1;BQB=0.771739;MQSB=1;SGB=-0.693147;MQ0F=0;I16=1,1,85,99,52,1402,4422,112304,120,7200,11040,662400,50,1250,4600,115000;QS=0.0116227,0.983907;AD=2,182;ADF=85;ADR=97;AF=0.98913;STRAND_BIAS=0.467033
+NC_000962.3	781822	.	A	G	.	PASS	AA=.;CODON_NUMBER=88;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|7,STM|1,ETH|7,KAN|7,CAP|7;GENE=rpsL;GENE_LOCUS=Rv0682;HGVS_NUCLEOTIDE=c.263A>G;HGVS_PROTEIN=p.Lys88Arg;PROTEIN_ID=NP_215196.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=69;VDB=4.65654e-23;RPB=0.469388;MQB=1;BQB=0.612245;MQSB=1;SGB=-0.693147;MQ0F=0;I16=1,1,6,43,32,584,1001,21677,120,7200,2940,176400,50,1250,1225,30625;QS=0.0309777,0.969022;AD=2,49;ADF=6;ADR=43;AF=0.960784;STRAND_BIAS=0.122449
+NC_000962.3	1674048	.	G	A	.	PASS	AA=.;CODON_NUMBER=0;ANTIBIOTICS=RIF|7,INH|1,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|7,STM|7,ETH|2,KAN|7,CAP|7;GENE=fabG1;GENE_LOCUS=Rv1484;HGVS_NUCLEOTIDE=c.609G>A;HGVS_PROTEIN=p.Leu203Leu;PROTEIN_ID=NP_215999.1;EFFECT=synonymous_variant;STRAND=1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=208;VDB=0;RPB=0.950499;MQB=1;BQB=0.197252;MQSB=1;SGB=-0.693147;MQ0F=0;I16=1,3,74,73,58,876,3128,74308,240,14400,8820,529200,100,2500,3675,91875;QS=0.0182046,0.971124;AD=4,145;ADF=72;ADR=73;AF=0.973154;STRAND_BIAS=0.496552
+NC_000962.3	2155168	.	C	G	.	PASS	AA=.;CODON_NUMBER=315;ANTIBIOTICS=RIF|7,INH|1,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=katG;GENE_LOCUS=Rv1908c;HGVS_NUCLEOTIDE=c.944G>C;HGVS_PROTEIN=p.Ser315Thr;PROTEIN_ID=NP_216424.1;EFFECT=missense_variant;STRAND=-1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=313;VDB=0;MQSB=1;SGB=-0.693147;MQ0F=0;I16=0,0,130,162,0,0,7586,205696,0,0,17520,1.0512e+06,0,0,7283,181939;QS=0,1;AD=0,292;ADF=130;ADR=162;AF=1;STRAND_BIAS=0.445205
+NC_000962.3	2289213	.	T	G	.	PASS	AA=.;CODON_NUMBER=10;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|1,LEV|7,MXF|7,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=pncA;GENE_LOCUS=Rv2043c;HGVS_NUCLEOTIDE=c.29A>G;HGVS_PROTEIN=p.Gln10Arg;PROTEIN_ID=NP_216559.1;EFFECT=missense_variant;STRAND=-1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=226;VDB=0;RPB=0.986072;MQB=1;BQB=0.0051861;MQSB=1;SGB=-0.693147;MQ0F=0;I16=1,3,108,86,46,530,5092,142910,240,14400,11640,698400,100,2500,4850,121250;QS=0.00895639,0.98676;AD=4,193;ADF=107;ADR=86;AF=0.979695;STRAND_BIAS=0.554404
+NC_000962.3	2715342	.	C	T	.	PASS	AA=.;CODON_NUMBER=0;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|3,STM|7,ETH|7,KAN|1,CAP|7;GENE=eis;GENE_LOCUS=Rv2416c;HGVS_NUCLEOTIDE=c.-10G>A;HGVS_PROTEIN=.;PROTEIN_ID=.;EFFECT=upstream_gene_variant;STRAND=-1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=282;VDB=0;RPB=1;MQB=1;BQB=1;MQSB=1;SGB=-0.693147;MQ0F=0;I16=1,0,112,99,28,784,4570,108070,60,3600,12660,759600,25,625,5275,131875;QS=0.0060896,0.991736;AD=1,210;ADF=111;ADR=99;AF=0.995261;STRAND_BIAS=0.528571
+NC_000962.3	4247730	.	G	C	.	PASS	AA=.;CODON_NUMBER=406;ANTIBIOTICS=RIF|7,INH|7,EMB|1,PZA|7,LEV|7,MXF|7,BDQ|7,LZD|7,CFZ|7,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=embB;GENE_LOCUS=Rv3795;HGVS_NUCLEOTIDE=c.1217G>A;HGVS_PROTEIN=p.Gly406Asp;PROTEIN_ID=NP_218312.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=gene;ORIGIN=WHO_CANONICAL;DP=120;VDB=5.40546e-27;RPB=0.931799;MQB=1;BQB=0.837327;MQSB=1;SGB=-0.693147;MQ0F=0;I16=3,1,41,51,81,1865,2096,53104,240,14400,5520,331200,100,2500,2300,57500;QS=0.0372072,0.958199;AD=4,91;ADF=40;ADR=51;AF=0.957895;STRAND_BIAS=0.43956
