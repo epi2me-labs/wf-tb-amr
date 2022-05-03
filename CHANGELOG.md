@@ -16,10 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added option to set strand bias filter level
 - Added versions for primers
 ### Fixed
-- Division by 0 errors for RBK and strand bias
 - Sample name given by user can now be an integer
 ### Added
 - Single sample reports
+- Additional report on less confident variants
 
 ## [v0.0.13]
 ### Fixed
