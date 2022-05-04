@@ -178,7 +178,7 @@
         }
     },
     "docs": {
-        "intro": "## Introduction\n\n`wf-tb-amr` is a workflow for determining the antibiotic resistance of Mycobacterium tuberculosis samples. The \nworkflow handles multiplexed sequencing runs and provides clear and simple reports summarising the \npredicted resistance profile of each sample according to genetic variants discovered.\n",
+        "intro": "## Introduction\n\n`wf-tb-amr` is a workflow for determining the antibiotic resistance of\nMycobacterium tuberculosis samples. The workflow handles multiplexed sequencing\nruns and provides clear and simple reports summarising the predicted resistance\nprofile of each sample according to genetic variants discovered.\n",
         "links": "## Useful links\n\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [conda](https://docs.conda.io/en/latest/miniconda.html)\n"
     }
 }
