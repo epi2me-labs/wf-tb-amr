@@ -77,7 +77,7 @@ process mpileup {
     bcftools mpileup \
       --max-depth 8000 \
       --threads ${params.threads} \
-      -B \
+      -BI \
       -Q 1 \
       --ff SECONDARY,UNMAP \
       --annotate INFO/AD,INFO/ADF,INFO/ADR \
