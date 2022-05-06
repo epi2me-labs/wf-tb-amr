@@ -1,7 +1,7 @@
 {
   "misc_language":{
     "resistant": "Resistant",
-    "susceptible": "Susceptible",
+    "susceptible": "No Resistence Detected",
     "fail": "fail",
     "pass": "pass",
     "status": "status",
@@ -191,7 +191,7 @@
   },
   "sections":{
     "drug_susceptibility": {
-      "title": "Drug Susceptibility",
+      "title": "Drug Resistance",
       "blurb": "Resistance is reported when a high likelihood resistance confirming mutation is detected in the loci of interest<sup>2</sup>. <strong>No mutation detected does not exclude the possibility of resistance<sup>3</sup>.</strong>",
       "result": {
         "NONE": "No mutations detected",

@@ -214,17 +214,19 @@ def make_drug_section(
     section = report_doc.add_section()
 
     section._add_item(
-        f"""{make_header(data['drug_susceptibility']["title"])}""")
+        f"""{make_header(data['sections']['drug_susceptibility']["title"])}""")
 
     make_final_result_section(
-        section, data['final'], antibiotics, resistance, sample_id)
+        section, data['sections']['final'], antibiotics, resistance, sample_id)
 
     section._add_item(f"""
         <div class="row">
-            <div class="col">{data['drug_susceptibility']['blurb']}</div>
+            <div class="col">
+                {data['sections']['drug_susceptibility']['blurb']}
+            </div>
         <div class="col">""")
 
-    for k, v in data['drug_susceptibility']['result'].items():
+    for k, v in data['sections']['drug_susceptibility']['result'].items():
         checked = ''
         if k == resistance["resistance_level"]:
             checked = " checked"
@@ -261,13 +263,13 @@ def make_drug_section(
             <tr>
                 <td colspan=4 class="">
                     <strong>
-                        {data['drug_susceptibility']["line"][line]}
+                        {data['sections']['drug_susceptibility']["line"][line]}
                     </strong>
                 </td>
         </tr>""")
 
         for status in ['resistant', 'susceptible']:
-            interpretation = status.capitalize()
+            interpretation = data['misc_language'][status]
             for antibiotic in resistance[status]:
                 if line != resistance[status][antibiotic]['line']:
                     continue
@@ -430,7 +432,7 @@ def main():
     if controls is True:
 
         make_drug_section(
-            report_doc, canned_text['sections'], canned_text['antibiotics'],
+            report_doc, canned_text, canned_text['antibiotics'],
             resistance, args.sample_id, args.barcode)
 
     make_authorisation_section(
