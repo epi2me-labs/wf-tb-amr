@@ -33,30 +33,31 @@ def call_resistance(resistance: dict, antibiotics: dict) -> str:
         if 'RIF' in res and 'INH' in res:
             resistance['resistance_level'] = 'MDR'
 
-    if resistance['resistance_level'] == 'MDR':
+    if resistance['resistance_level'] in ['MDR', 'RR']:
 
         fluro_count = 0
 
         groupa_count = 0
 
-        done = []
+        fluro_groupa_count = 0
 
         for fluro in fluoroquinolones:
             if fluro in res:
                 fluro_count += 1
-                done.append(fluro)
+                # remove those fluros we've already found from group a
+                if fluro in groupa:
+                    groupa.remove(fluro)
+                    fluro_groupa_count += 1
 
         for a in groupa:
             if a in res:
-                if a not in done:
-                    groupa_count += 1
+                groupa_count += 1
 
         # The new definition of pre-XDR-TB is: TB caused by Mycobacterium
         # tuberculosis (M. tuberculosis)strains that fulfil the definition of
         # multidrug resistant and rifampicin-resistant TB (MDR/RR-TB) and
         # which are also resistant to any fluoroquinolone.
-        print(groupa_count)
-        print(fluro_count)
+
         if fluro_count >= 1:
             resistance['resistance_level'] = 'pre-XDR'
 
@@ -69,7 +70,12 @@ def call_resistance(resistance: dict, antibiotics: dict) -> str:
         # longer treatment regimens and comprise levofloxacin, moxifloxacin,
         # bedaquiline and linezolid).
 
+        # This is the case where it's a fluro and a non fluro group a
         if fluro_count >= 1 and groupa_count >= 1:
+            resistance['resistance_level'] = 'XDR'
+
+        # This is the case where it's a flouro and a fluro group a
+        if fluro_count >= 2 and fluro_groupa_count >= 1:
             resistance['resistance_level'] = 'XDR'
 
     return resistance
