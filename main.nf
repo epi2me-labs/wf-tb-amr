@@ -205,8 +205,7 @@ process report {
         path amplicons_bed
         file report_config
     output:
-        path "*report.html", emit: html
-        path "*report.csv", emit: csv
+        tuple file("wf-tb-amr-report.html"), file("wf-tb-amr-report.csv") 
     """
     report.py \
         --revision $workflow.revision \

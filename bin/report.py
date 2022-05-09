@@ -984,7 +984,7 @@ def main():
         sample_types_counts, args.ntc_threshold,
         args.positive_threshold, report_doc)
 
-    csv = 'wf-tb-amr.csv'
+    csv = 'wf-tb-amr-report.csv'
     csv_output(sample_types_counts, canned_text, csv)
 
     section_executive_summary(
