@@ -153,6 +153,31 @@ def test_call_resistance():
     assert common_methods.call_resistance(resistance, antibiotics) == \
         resistance_result
 
+    resistance = OrderedDict(
+            resistance_level="NONE",
+            resistant=OrderedDict(
+                RIF=None,
+                INH=None,
+                LEV=None,
+                MXF=None
+            ),
+            susceptible=OrderedDict()
+        )
+
+    resistance_result = OrderedDict(
+            resistance_level='XDR',
+            resistant=OrderedDict(
+                RIF=None,
+                INH=None,
+                LEV=None,
+                MXF=None
+            ),
+            susceptible=OrderedDict()
+        )
+
+    assert common_methods.call_resistance(resistance, antibiotics) == \
+        resistance_result
+
 
 def test_determine_status_sample_pass():
     """Test determining the status of a sample passed experiment."""
