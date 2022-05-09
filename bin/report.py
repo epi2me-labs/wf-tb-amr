@@ -308,13 +308,11 @@ def section_reads_per_barcode(args, report_doc):
 
 def csv_output(samples, canned_text, csv):
     """Make a csv results file."""
-    output = list()
+    output = ["sample,type,status,call,resistant"]
 
     for sample in samples:
+        # print(samples[sample])
         sample_type = samples[sample]['type']
-
-        if sample_type in ['no_template_control', 'positive_control']:
-            continue
 
         vcf_file = f"variants/{sample}.final.vcf"
 
@@ -324,14 +322,20 @@ def csv_output(samples, canned_text, csv):
         resistance = call_resistance(
             resistance, canned_text['antibiotics'])
 
+        abs = ";".join(list(resistance['resistant'].keys()))
         line = [
             sample,
-            resistance['resistance_level']
-            ]+list(resistance['resistant'].keys())
+            sample_type,
+            samples[sample]['qc_status'],
+            resistance['resistance_level'],
+            abs
+            ]
 
         output.append(",".join(line))
 
-    print("\n".join(output))
+    with open(csv, "w") as f:
+        f.write("\n".join(output))
+    f.close()
 
 
 def section_executive_summary(args, report_doc, samples, canned_text):
