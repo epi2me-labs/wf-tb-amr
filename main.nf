@@ -206,6 +206,7 @@ process report {
         file report_config
     output:
         path "*report.html", emit: html
+        path "*report.csv", emit: csv
     """
     report.py \
         --revision $workflow.revision \
