@@ -444,12 +444,10 @@ def section_executive_summary(args, report_doc, samples, canned_text):
         section._add_item(f"""
             <div class="alert alert-{background} mt-3" role="alert">
                 {symbol} <strong><a href="#{sample}">{sample}</a>
-                <a href=\"{sample}_report.html\" target="_blank"
-                rel="noopener noreferrer">
+                <a href=\"{sample}_report.html\" rel="noopener noreferrer">
                    <i class="fa fa-clipboard"></i>
                </a>
-                <a href=\"{sample}_appendix.html\" target="_blank"
-                rel="noopener noreferrer">
+                <a href=\"{sample}_appendix.html\" rel="noopener noreferrer">
                    <i class="fa fa-microscope"></i>
                </a>
                 </strong>
@@ -984,8 +982,8 @@ def main():
         sample_types_counts, args.ntc_threshold,
         args.positive_threshold, report_doc)
 
-    csv = 'wf-tb-amr-report.csv'
-    csv_output(sample_types_counts, canned_text, csv)
+    csv_file = 'wf-tb-amr-report.csv'
+    csv_output(sample_types_counts, canned_text, csv_file)
 
     section_executive_summary(
         args, report_doc, sample_types_counts, canned_text)
