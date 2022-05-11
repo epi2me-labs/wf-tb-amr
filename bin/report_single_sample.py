@@ -112,7 +112,7 @@ def make_assay_section(
     values = dict(
         platform="GridION",
         version=f"{revision} ({commit})",
-        reference="AL123456.3",
+        reference="NC_000962.3",
         barcode=barcode
     )
 
