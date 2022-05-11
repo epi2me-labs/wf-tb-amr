@@ -444,10 +444,10 @@ def section_executive_summary(args, report_doc, samples, canned_text):
         section._add_item(f"""
             <div class="alert alert-{background} mt-3" role="alert">
                 {symbol} <strong><a href="#{sample}">{sample}</a>
-                <a href=\"{sample}_report.html\" rel="noopener noreferrer">
+                <a href=\"{sample}_report.html\">
                    <i class="fa fa-clipboard"></i>
                </a>
-                <a href=\"{sample}_appendix.html\" rel="noopener noreferrer">
+                <a href=\"{sample}_appendix.html\">
                    <i class="fa fa-microscope"></i>
                </a>
                 </strong>
