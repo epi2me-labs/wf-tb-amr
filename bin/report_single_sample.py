@@ -110,9 +110,9 @@ def make_assay_section(
     section._add_item("""</tr><thead><tr>""")
 
     values = dict(
-        platform="GridION",
+        platform="",
         version=f"{revision} ({commit})",
-        reference="AL123456.3",
+        reference="NC_000962.3",
         barcode=barcode
     )
 
