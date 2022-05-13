@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed issue with resistance calling
 ### Changed
 - Some wording on reports
+- Removed "_blank" from single sample reports for jupyter compatibility
 
 ## [v1.0.2]
 ### Changed
