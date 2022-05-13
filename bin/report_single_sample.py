@@ -44,10 +44,9 @@ def make_result_qr_code(
         border=0)
 
     res = '|'.join([antibiotic for antibiotic in resistance['resistant']])
-    sus = '|'.join([antibiotic for antibiotic in resistance['susceptible']])
 
     level = resistance['resistance_level']
-    qr_string = f"""{sample_id},{barcode},{level},RES;{res},SUS;{sus}"""
+    qr_string = f"""{sample_id},{barcode},{level},RES;{res}"""
 
     qr.add_data(qr_string)
 
@@ -110,9 +109,9 @@ def make_assay_section(
     section._add_item("""</tr><thead><tr>""")
 
     values = dict(
-        platform="GridION",
+        platform="",
         version=f"{revision} ({commit})",
-        reference="AL123456.3",
+        reference="NC_000962.3",
         barcode=barcode
     )
 
