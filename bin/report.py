@@ -197,7 +197,7 @@ def check_no_template(samples: list, threshold: str, section):
     for sample in samples:
         if samples[sample]['type'] == 'no_template_control':
             qc_status = samples[sample]['qc_status']
-            print(samples[sample]['fail_amplicons'])
+
             fail_amplicons = " ".join(
                 f"""<span class="badge badge-white">{k}
                 <span class="badge badge-brand-red">{int(v['median'])}</span>
@@ -306,10 +306,42 @@ def section_reads_per_barcode(args, report_doc):
     section._add_item("""</div></div>""")
 
 
+def csv_output(samples, canned_text, csv):
+    """Make a csv results file."""
+    output = ["sample,type,status,call,resistant"]
+
+    for sample in samples:
+        # print(samples[sample])
+        sample_type = samples[sample]['type']
+
+        vcf_file = f"variants/{sample}.final.vcf"
+
+        resistance = process_resistance(
+            vcf_file, canned_text['antibiotics'], 1)
+
+        resistance = call_resistance(
+            resistance, canned_text['antibiotics'])
+
+        abs = ";".join(list(resistance['resistant'].keys()))
+        line = [
+            sample,
+            sample_type,
+            samples[sample]['qc_status'],
+            resistance['resistance_level'],
+            abs
+            ]
+
+        output.append(",".join(line))
+
+    with open(csv, "w") as f:
+        f.write("\n".join(output))
+    f.close()
+
+
 def section_executive_summary(args, report_doc, samples, canned_text):
     """Return the results summary."""
     result = dict()
-    print(samples)
+
     for sample in samples:
         sample_type = samples[sample]['type']
         if sample_type in ['no_template_control', 'positive_control']:
@@ -342,7 +374,6 @@ def section_executive_summary(args, report_doc, samples, canned_text):
                 {'Sample': sample, **result[sample]['antibiotics']}
                 for sample in result])
 
-    print(data)
     data.set_index("Sample", inplace=True)
     data = data.replace({np.nan: 0})
     data = data.reindex(sorted(data.columns), axis=1)
@@ -413,12 +444,10 @@ def section_executive_summary(args, report_doc, samples, canned_text):
         section._add_item(f"""
             <div class="alert alert-{background} mt-3" role="alert">
                 {symbol} <strong><a href="#{sample}">{sample}</a>
-                <a href=\"{sample}_report.html\" target="_blank"
-                rel="noopener noreferrer">
+                <a href=\"{sample}_report.html\">
                    <i class="fa fa-clipboard"></i>
                </a>
-                <a href=\"{sample}_appendix.html\" target="_blank"
-                rel="noopener noreferrer">
+                <a href=\"{sample}_appendix.html\">
                    <i class="fa fa-microscope"></i>
                </a>
                 </strong>
@@ -591,8 +620,6 @@ def antibiotics_evidence(args, report_doc):
 
 def genotyped_variant_summary(samplekey, variant_data, report_doc):
     """Return genotyped variant summary."""
-    print(samplekey)
-
     results = {}
     for gene in variant_data:
         for antibiotic in gene['antibiotic_resistance']:
@@ -619,7 +646,6 @@ def genotyped_variant_summary(samplekey, variant_data, report_doc):
                          ({mutation['observed_allele']})
                          """
                 else:
-                    print(results[key])
                     results[key]["antibiotic"] += f', ' \
                         f'{antibiotic["antibiotic"]}'
     data = pd.DataFrame(list(results.values()))
@@ -955,6 +981,9 @@ def main():
     controls(
         sample_types_counts, args.ntc_threshold,
         args.positive_threshold, report_doc)
+
+    csv_file = 'wf-tb-amr-report.csv'
+    csv_output(sample_types_counts, canned_text, csv_file)
 
     section_executive_summary(
         args, report_doc, sample_types_counts, canned_text)

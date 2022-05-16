@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.3]
+### Added
+- CSV output of final results for every sample
+### Fixed
+- Fixed issue with resistance calling
+### Changed
+- Some wording on reports
+- Removed "_blank" from single sample reports for jupyter compatibility
+
+## [v1.0.2]
+### Changed
+- Report formatting
+
+## [v1.0.1]
+### Changed
+- New docs format
 
 ## [v1.0.0]
 ### Changed

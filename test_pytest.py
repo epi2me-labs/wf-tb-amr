@@ -131,6 +131,42 @@ def test_call_resistance():
     resistance = OrderedDict(
             resistance_level="NONE",
             resistant=OrderedDict(
+                LEV=None,  # grpA fluoro
+                MXF=None,  # grpA fluoro
+                RIF=None,
+                AMI=None,
+                KAN=None,
+                CAP=None,
+                INH=None,
+                EMB=None
+            ),
+            susceptible=OrderedDict()
+        )
+
+    # This one should be XDR - RIF+INH = MDR
+    # MDR + 1 fluro and 1 from grpA = XDR
+
+    resistance_result = OrderedDict(
+            resistance_level='XDR',
+            resistant=OrderedDict(
+                LEV=None,
+                MXF=None,
+                RIF=None,
+                AMI=None,
+                KAN=None,
+                CAP=None,
+                INH=None,
+                EMB=None
+            ),
+            susceptible=OrderedDict()
+        )
+
+    assert common_methods.call_resistance(resistance, antibiotics) == \
+        resistance_result
+
+    resistance = OrderedDict(
+            resistance_level="NONE",
+            resistant=OrderedDict(
                 RIF=None,
                 INH=None,
                 LEV=None,
@@ -146,6 +182,31 @@ def test_call_resistance():
                 INH=None,
                 LEV=None,
                 LZD=None
+            ),
+            susceptible=OrderedDict()
+        )
+
+    assert common_methods.call_resistance(resistance, antibiotics) == \
+        resistance_result
+
+    resistance = OrderedDict(
+            resistance_level="NONE",
+            resistant=OrderedDict(
+                RIF=None,
+                INH=None,
+                LEV=None,
+                MXF=None
+            ),
+            susceptible=OrderedDict()
+        )
+
+    resistance_result = OrderedDict(
+            resistance_level='XDR',
+            resistant=OrderedDict(
+                RIF=None,
+                INH=None,
+                LEV=None,
+                MXF=None
             ),
             susceptible=OrderedDict()
         )
