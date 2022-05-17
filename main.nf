@@ -205,7 +205,7 @@ process report {
         path amplicons_bed
         file report_config
     output:
-        tuple file("wf-tb-amr-report.html"), file("wf-tb-amr-report.csv") 
+        tuple file("wf-tb-amr-report.html"), file("wf-tb-amr-report.csv")
     """
     report.py \
         --revision $workflow.revision \
@@ -438,7 +438,7 @@ workflow {
 
     start_ping()
     samples = fastq_ingress(
-        params.fastq, params.out_dir, params.sample, params.sample_sheet, params.sanitize_fastq)
+        params.fastq, params.out_dir, params.sample, params.sample_sheet, params.sanitize_fastq).filter {it[0] != "unclassified"}
 
       //get reference
       if (params.reference == null){
