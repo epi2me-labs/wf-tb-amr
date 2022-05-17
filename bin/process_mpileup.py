@@ -180,15 +180,15 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
                 table = pandas.DataFrame(data=d, index=['REF', 'ALT'])
 
                 oddsr, p = fisher_exact(table, alternative='two-sided')
-
+                print(p)
                 if p == 0:
-                    phred = 0
+                    phred = 'INF'
+                    new_record.INFO['FS_SB'] = f'{phred}'
                 else:
                     phred = -10 * math.log10(p)
+                    new_record.INFO['FS_SB'] = f'{phred:.2f}'
 
-                new_record.INFO['FS_SB'] = f'{phred:.2f}'
-
-                if phred > STRAND_BIAS_CUTOFF:
+                if phred > STRAND_BIAS_CUTOFF or phred == 'INF':
                     logging.info(
                         f"""\tFAILED STRAND_BIAS {ALT} FWD: {ADF}/{ref_ADF}"""
                         f""" REV: {ADR}/{ref_ADR} AF: {AF}""")
