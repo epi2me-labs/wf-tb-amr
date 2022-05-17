@@ -53,6 +53,39 @@ process alignReads {
     """
 }
 
+process downSample {
+    label 'microbial'
+    cpus params.threads
+    input:
+        tuple val(sample_id), val(type), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
+        path amplicons_bed
+    output:
+        tuple val(sample_id), val(type), path("${sample_id}_all_merged.sorted.bam"), path("${sample_id}_all_merged.sorted.bam.bai")
+    """
+    # split bam
+    header_count=`samtools view -H ${sample_id}.bam | wc -l`
+    lines=\$(( 500 + \$header_count ))
+    while read line;
+    do
+      region=`echo -e "\${line}" | cut -f1-3 | sed '1 s/\t/:/' | sed 's/\t/-/g'`;
+
+      samtools view -bh ${sample_id}.bam \${region} > ${sample_id}_\${region}.bam;
+      samtools view -h -F16 ${sample_id}_\${region}.bam > ${sample_id}_\${region}_fwd.sam;
+      head -1000 ${sample_id}_\${region}_fwd.sam | samtools view -bh - > ${sample_id}_\${region}_fwd.bam;
+
+      samtools view -h -f16 ${sample_id}_\${region}.bam > ${sample_id}_\${region}_rev.sam;
+      head -1000 ${sample_id}_\${region}_rev.sam | samtools view -bh - > ${sample_id}_\${region}_rev.bam;
+      samtools merge ${sample_id}_\${region}_all.bam ${sample_id}_\${region}_fwd.bam ${sample_id}_\${region}_rev.bam;
+
+    done < ${amplicons_bed}
+
+    samtools merge ${sample_id}_all_merged.bam *_all.bam
+    samtools sort ${sample_id}_all_merged.bam > ${sample_id}_all_merged.sorted.bam
+    samtools index ${sample_id}_all_merged.sorted.bam
+    echo "done"
+
+    """
+}
 
 process mpileup {
     label 'microbial'
@@ -205,7 +238,7 @@ process report {
         path amplicons_bed
         file report_config
     output:
-        tuple file("wf-tb-amr-report.html"), file("wf-tb-amr-report.csv") 
+        tuple file("wf-tb-amr-report.html"), file("wf-tb-amr-report.csv")
     """
     report.py \
         --revision $workflow.revision \
@@ -344,14 +377,17 @@ workflow pipeline {
         // do alignment
         alignments = alignReads(sample_fastqs.sample, reference)
 
+        // do crude downsampling
+        downsample = downSample(alignments[0], amplicons_bed)
+
         // do mpileup
-        mpileup_result = mpileup(reference, vcf_template, bcf_annotate_template, alignments[0], variant_db, variant_db+".tbi", genbank)
+        mpileup_result = mpileup(reference, vcf_template, bcf_annotate_template, downsample[0], variant_db, variant_db+".tbi", genbank)
 
         // phase variants
         whatshap_result = whatshap(reference, genbank, variant_db, vcf_template, bcf_annotate_template, mpileup_result)
 
         // do some coverage calcs
-        region_read_count = countReadsRegions(amplicons_bed, alignments[0])
+        region_read_count = countReadsRegions(amplicons_bed, downsample[0])
 
         samples_region = region_read_count.bed_files.map{it[0]}.collect().map{it.join(' ')}
         types = region_read_count.bed_files.map{it[1]}.collect().map{it.join(' ')}
