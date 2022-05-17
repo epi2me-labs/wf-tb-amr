@@ -181,7 +181,11 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
 
                 oddsr, p = fisher_exact(table, alternative='two-sided')
 
-                phred = -10 * math.log10(p)
+                if p == 0:
+                    phred = 0
+                else:
+                    phred = -10 * math.log10(p)
+
                 new_record.INFO['FS_SB'] = f'{phred:.2f}'
 
                 if phred > STRAND_BIAS_CUTOFF:
