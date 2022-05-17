@@ -6,6 +6,7 @@ from collections import namedtuple, OrderedDict
 import copy
 import logging
 import math
+import sys
 
 import pandas
 from scipy.stats import fisher_exact
@@ -182,13 +183,13 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
                 oddsr, p = fisher_exact(table, alternative='two-sided')
                 print(p)
                 if p == 0:
-                    phred = 'INF'
-                    new_record.INFO['FS_SB'] = f'{phred}'
-                else:
-                    phred = -10 * math.log10(p)
-                    new_record.INFO['FS_SB'] = f'{phred:.2f}'
+                    p = sys.float_info.min
 
-                if phred > STRAND_BIAS_CUTOFF or phred == 'INF':
+                phred = -10 * math.log10(p)
+
+                new_record.INFO['FS_SB'] = f'{phred:.2f}'
+
+                if phred > STRAND_BIAS_CUTOFF:
                     logging.info(
                         f"""\tFAILED STRAND_BIAS {ALT} FWD: {ADF}/{ref_ADF}"""
                         f""" REV: {ADR}/{ref_ADR} AF: {AF}""")
