@@ -64,17 +64,17 @@ process downSample {
     """
     # split bam
     header_count=`samtools view -H ${sample_id}.bam | wc -l`
-    lines=\$(( ${params.downsample} + \$header_count ))
+    lines=\$(( ${params.downsample} + \$header_count + 1 ))
     while read line;
     do
       region=`echo -e "\${line}" | cut -f1-3 | sed '1 s/\t/:/' | sed 's/\t/-/g'`;
 
       samtools view -bh ${sample_id}.bam \${region} > ${sample_id}_\${region}.bam;
       samtools view -h -F16 ${sample_id}_\${region}.bam > ${sample_id}_\${region}_fwd.sam;
-      head -1000 ${sample_id}_\${region}_fwd.sam | samtools view -bh - > ${sample_id}_\${region}_fwd.bam;
+      head -\${lines} ${sample_id}_\${region}_fwd.sam | samtools view -bh - > ${sample_id}_\${region}_fwd.bam;
 
       samtools view -h -f16 ${sample_id}_\${region}.bam > ${sample_id}_\${region}_rev.sam;
-      head -1000 ${sample_id}_\${region}_rev.sam | samtools view -bh - > ${sample_id}_\${region}_rev.bam;
+      head -\${lines} ${sample_id}_\${region}_rev.sam | samtools view -bh - > ${sample_id}_\${region}_rev.bam;
       samtools merge ${sample_id}_\${region}_all.bam ${sample_id}_\${region}_fwd.bam ${sample_id}_\${region}_rev.bam;
 
     done < ${amplicons_bed}
