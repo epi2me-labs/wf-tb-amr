@@ -64,7 +64,7 @@ process downSample {
     """
     # split bam
     header_count=`samtools view -H ${sample_id}.bam | wc -l`
-    lines=\$(( 500 + \$header_count ))
+    lines=\$(( ${params.downsample} + \$header_count ))
     while read line;
     do
       region=`echo -e "\${line}" | cut -f1-3 | sed '1 s/\t/:/' | sed 's/\t/-/g'`;
@@ -378,7 +378,13 @@ workflow pipeline {
         alignments = alignReads(sample_fastqs.sample, reference)
 
         // do crude downsampling
-        downsample = downSample(alignments[0], amplicons_bed)
+        if (params.downsample != null){
+          println("Downsampling!!!")
+          downsample = downSample(alignments[0], amplicons_bed)
+        } else {
+          println("NOT Downsampling!!!")
+          downsample = alignments
+        }
 
         // do mpileup
         mpileup_result = mpileup(reference, vcf_template, bcf_annotate_template, downsample[0], variant_db, variant_db+".tbi", genbank)
