@@ -181,7 +181,6 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
                 table = pandas.DataFrame(data=d, index=['REF', 'ALT'])
 
                 oddsr, p = fisher_exact(table, alternative='two-sided')
-                print(p)
                 if p == 0:
                     p = sys.float_info.min
 
