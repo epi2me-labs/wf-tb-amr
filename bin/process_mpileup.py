@@ -6,6 +6,7 @@ from collections import namedtuple, OrderedDict
 import copy
 import logging
 import math
+import sys
 
 import pandas
 from scipy.stats import fisher_exact
@@ -180,8 +181,11 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
                 table = pandas.DataFrame(data=d, index=['REF', 'ALT'])
 
                 oddsr, p = fisher_exact(table, alternative='two-sided')
+                if p == 0:
+                    p = sys.float_info.min
 
                 phred = -10 * math.log10(p)
+
                 new_record.INFO['FS_SB'] = f'{phred:.2f}'
 
                 if phred > STRAND_BIAS_CUTOFF:

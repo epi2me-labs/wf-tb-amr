@@ -480,7 +480,7 @@ workflow {
 
     start_ping()
     samples = fastq_ingress(
-        params.fastq, params.out_dir, params.sample, params.sample_sheet, params.sanitize_fastq)
+        params.fastq, params.out_dir, params.sample, params.sample_sheet, params.sanitize_fastq).filter {it[0] != "unclassified"}
 
       //get reference
       if (params.reference == null){

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Added
 - Crude downsampling step to expedite high coverage samples
+### Fixed
+- Error in phred strand bias calc if p=0
+- Unclassified reads caused failure due to lack of barcode
 
 ## [v1.0.3]
 ### Added

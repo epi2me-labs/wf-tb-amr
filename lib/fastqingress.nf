@@ -256,7 +256,7 @@ def handle_non_barcoded_dirs(non_barcoded_dirs)
 {
     valid_dirs = get_valid_directories(non_barcoded_dirs)
     return Channel.fromPath(valid_dirs)
-        .map { path -> tuple(path, path.baseName, 'test_sample') }
+        .map { path -> tuple(path.baseName, path, path.baseName, 'test_sample') }
 }
 
 
