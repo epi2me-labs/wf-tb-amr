@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Fixed
-- Bug that caused if unclassified is present
+- Bug that caused if unclassified folder is present
 
 ## [v1.0.3]
 ### Added
