@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Fixed
-- Bug that caused if unclassified folder is present
+- Unclassified reads caused failure due to lack of barcode
 
 ## [v1.0.3]
 ### Added
