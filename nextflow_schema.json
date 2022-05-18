@@ -47,6 +47,10 @@
                     "description": "Report confident noncanonical variants that overlap variants of interest.",
                     "default": false
                 },
+                "downsample": {
+                    "type": "integer",
+                    "description": "Number of reads to downsample to in each direction, leave null for no downsampling."
+                },
                 "minimum_read_support": {
                     "type": "integer",
                     "description": "The minimum number of reads to consider for a variant call on each strand.",
@@ -163,7 +167,7 @@
         },
         "wfversion": {
             "type": "string",
-            "default": "v1.0.3",
+            "default": "v1.0.4",
             "hidden": true
         },
         "monochrome_logs": {
