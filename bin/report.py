@@ -565,7 +565,7 @@ def section_executive_summary(args, report_doc, samples, canned_text):
             <li>
                 <h5 style="display: inline;">
                     <span class="badge badge-brand-light-grey">
-                        Susceptible
+                        No Resistance Detected
                     </span>
                 </h5>
             </li>
