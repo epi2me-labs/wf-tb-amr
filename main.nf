@@ -98,6 +98,7 @@ process mpileup {
         file variant_db
         file varinat_db_index
         file genbank
+        file amplicons_bed
     output:
         tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.processed.vcf"),  path("${sample_id}.mpileup.annotated.processed.PASS.vcf"), path(bam), path(bam_index)
 
@@ -114,7 +115,7 @@ process mpileup {
       -Q 1 \
       --ff SECONDARY,UNMAP \
       --annotate INFO/AD,INFO/ADF,INFO/ADR \
-      -R ${params._amplicons_bed} \
+      -R ${amplicons_bed} \
       -O v \
       -f ${reference} ${bam} > ${sample_id}.mpileup.vcf
 
@@ -387,7 +388,7 @@ workflow pipeline {
         }
 
         // do mpileup
-        mpileup_result = mpileup(reference, vcf_template, bcf_annotate_template, downsample[0], variant_db, variant_db+".tbi", genbank)
+        mpileup_result = mpileup(reference, vcf_template, bcf_annotate_template, downsample[0], variant_db, variant_db+".tbi", genbank, amplicons_bed)
 
         // phase variants
         whatshap_result = whatshap(reference, genbank, variant_db, vcf_template, bcf_annotate_template, mpileup_result)
