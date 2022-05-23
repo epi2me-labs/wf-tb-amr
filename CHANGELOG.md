@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Changed
-- Some wording on reports
+- Wording on reports
+### Fixed
+- Issue where Rv0678 was excluded from variant DB
 
 ## [v1.0.4]
 ### Added

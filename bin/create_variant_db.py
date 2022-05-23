@@ -51,7 +51,8 @@ def load_cmdline_params():
         help="The WHO catalogue of MTBC mutations url.",
         default=f"{who_url}/{who_file}")
     parser.add_argument(
-        '-s', '--who_sheet', help="Genbank gbk file", default="Genome_indices")
+        '-s', '--who_sheet', help="The sheet containing the variants",
+        default="Genome_indices")
     parser.add_argument(
         '-t', '--vcf_template', help="Template VCF file", default=template)
     parser.add_argument(
@@ -64,7 +65,7 @@ def load_cmdline_params():
     parser.add_argument(
         '-e', '--group3_genes',
         help="If group 3 is included the genes to use.",
-        default=['rplC', 'rrl', 'rv0678'], nargs="+")
+        default=['rplC', 'rrl', 'Rv0678'], nargs="+")
     parser.add_argument(
         '-i', '--git', help="Git details for VCF header")
     parser.add_argument(
@@ -371,6 +372,7 @@ def prepare_vcf_header(template_vcf_file, args):
     # for each of our arguments add them to a list for use in the new header
     for i in vars(args):
         if type(vars(args)[i]) is not list:
+            print(type(vars(args)[i]))
             if os.path.isfile(vars(args)[i]):
                 md5 = hashlib.md5(
                     pathlib.Path(vars(args)[i]).read_bytes()).hexdigest()
