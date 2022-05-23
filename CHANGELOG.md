@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Changed
 - Wording on reports
+- bcftools mpileup now uses bed file to speed up processing
 ### Fixed
 - Issue where Rv0678 was excluded from variant DB
 
