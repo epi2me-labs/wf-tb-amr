@@ -114,7 +114,7 @@ process mpileup {
       -Q 1 \
       --ff SECONDARY,UNMAP \
       --annotate INFO/AD,INFO/ADF,INFO/ADR \
-      -R ${variant_db}.norm \
+      -R ${params._amplicons_bed} \
       -O v \
       -f ${reference} ${bam} > ${sample_id}.mpileup.vcf
 
@@ -132,7 +132,7 @@ process mpileup {
       -c CHROM,POS,REF,GENE,STRAND,AA,FEATURE_TYPE,EFFECT,GENE_LOCUS,WHO_POS,ANTIBIOTICS,PROTEIN_ID,HGVS_NUCLEOTIDE,HGVS_PROTEIN,CODON_NUMBER,ORIGIN \
       -h ${bcf_annotate_template} \
       -a ${variant_db} \
-      ${sample_id}.mpileup.vcf.gz.norm > ${sample_id}.mpileup.annotated.vcf
+      ${sample_id}.mpileup.vcf.gz.norm | bcftools filter -i 'INFO/ORIGIN="WHO_CANONICAL"' - > ${sample_id}.mpileup.annotated.vcf
 
     # call variants from pileup
     process_mpileup.py \
