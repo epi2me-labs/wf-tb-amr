@@ -445,10 +445,8 @@ workflow pipeline {
         types = region_read_count.map{ it[1]}.collect().map{ it.join(' ')}
         bed_files = region_read_count.map{ it[2]}.collect().map{ it.join(' ')}
 
-
         results = report.concat(
             whatshap_result.map{ it[2]}.collect(),
-            whatshap_result.collect(),
             output_alignments.collect(),
             report_single_sample.collect(),
             report_appendix.collect()
