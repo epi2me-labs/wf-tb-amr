@@ -98,6 +98,7 @@ process mpileup {
         path variant_db
         path varinat_db_index
         path genbank
+        path amplicons_bed
     output:
         tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.processed.vcf"),  path("${sample_id}.mpileup.annotated.processed.PASS.vcf"), path(bam), path(bam_index)
 
@@ -114,7 +115,7 @@ process mpileup {
       -Q 1 \
       --ff SECONDARY,UNMAP \
       --annotate INFO/AD,INFO/ADF,INFO/ADR \
-      -R ${variant_db}.norm \
+      -R ${amplicons_bed} \
       -O v \
       -f ${reference} ${bam} > ${sample_id}.mpileup.vcf
 
@@ -132,7 +133,7 @@ process mpileup {
       -c CHROM,POS,REF,GENE,STRAND,AA,FEATURE_TYPE,EFFECT,GENE_LOCUS,WHO_POS,ANTIBIOTICS,PROTEIN_ID,HGVS_NUCLEOTIDE,HGVS_PROTEIN,CODON_NUMBER,ORIGIN \
       -h ${bcf_annotate_template} \
       -a ${variant_db} \
-      ${sample_id}.mpileup.vcf.gz.norm > ${sample_id}.mpileup.annotated.vcf
+      ${sample_id}.mpileup.vcf.gz.norm | bcftools filter -i 'INFO/ORIGIN="WHO_CANONICAL"' - > ${sample_id}.mpileup.annotated.vcf
 
     # call variants from pileup
     process_mpileup.py \
@@ -387,7 +388,7 @@ workflow pipeline {
         }
 
         // do mpileup
-        mpileup_result = mpileup(reference, vcf_template, bcf_annotate_template, downsample[0], variant_db, variant_db+".tbi", genbank)
+        mpileup_result = mpileup(reference, vcf_template, bcf_annotate_template, downsample[0], variant_db, variant_db+".tbi", genbank, amplicons_bed)
 
         // phase variants
         whatshap_result = whatshap(reference, genbank, variant_db, vcf_template, bcf_annotate_template, mpileup_result)
