@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Wording on reports
 - bcftools mpileup now uses bed file to speed up processing
+- `file` to `path` in nextflow process definitions
 ### Fixed
 - Issue where Rv0678 was excluded from variant DB
 
