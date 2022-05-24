@@ -27,7 +27,7 @@ process combineFastq {
     label 'microbial'
     cpus 1
     input:
-        tuple val(sample_id), val(barcode), file(directory), val(type)
+        tuple val(sample_id), val(barcode), path(directory), val(type)
     output:
         tuple val(sample_id), val(type), path("${sample_id}.fastq.gz"), emit: sample
         path "${sample_id}.stats", emit: fastqstats
@@ -42,8 +42,8 @@ process alignReads {
     label 'microbial'
     cpus params.threads
     input:
-        tuple val(sample_id), val(type), file(sample_fastq)
-        file reference
+        tuple val(sample_id), val(type), path(sample_fastq)
+        path reference
     output:
         tuple val(sample_id), val(type), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
         tuple path("${sample_id}.bamstats"), path("${sample_id}.bam.summary"), emit: bamstats
@@ -91,13 +91,13 @@ process mpileup {
     label 'microbial'
     cpus params.threads
     input:
-        file reference
-        file vcf_template
-        file bcf_annotate_template
+        path reference
+        path vcf_template
+        path bcf_annotate_template
         tuple val(sample_id), val(type), path(bam), path(bam_index)
-        file variant_db
-        file varinat_db_index
-        file genbank
+        path variant_db
+        path varinat_db_index
+        path genbank
     output:
         tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.processed.vcf"),  path("${sample_id}.mpileup.annotated.processed.PASS.vcf"), path(bam), path(bam_index)
 
@@ -156,11 +156,11 @@ process whatshap {
     label 'microbial'
     cpus 1
     input:
-        file reference
-        file genbank
-        file variant_db
-        file vcf_template
-        file bcf_annotate_template
+        path reference
+        path genbank
+        path variant_db
+        path vcf_template
+        path bcf_annotate_template
         tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.processed.vcf"),  path("${sample_id}.mpileup.annotated.processed.PASS.vcf"), path(bam), path(bam_index)
     output:
         tuple val(sample_id), val(type), path("${sample_id}.final.vcf")
@@ -233,12 +233,12 @@ process report {
         path "variants/*"
         path "params.json"
         path "pickedreads/*"
-        file reference
+        path reference
         path "versions/*"
         path amplicons_bed
-        file report_config
+        path report_config
     output:
-        tuple file("wf-tb-amr-report.html"), file("wf-tb-amr-report.csv")
+        tuple path("wf-tb-amr-report.html"), path("wf-tb-amr-report.csv")
     """
     report.py \
         --revision $workflow.revision \
@@ -266,12 +266,12 @@ process reportSingle {
     label "microbial"
     cpus 1
     input:
-      tuple val(sample_id), val(barcode), path(fastq), val(sample_type), val(sample_type), file(variants), val(sample_type), file(coverage)
-      file ntc_coverage
-      file pos_coverage
-      file report_config
+      tuple val(sample_id), val(barcode), path(fastq), val(sample_type), val(sample_type), path(variants), val(sample_type), path(coverage)
+      path ntc_coverage
+      path pos_coverage
+      path report_config
     output:
-      file "${sample_id}_report.html"
+      path "${sample_id}_report.html"
     """
     report_single_sample.py \
       --revision $workflow.revision \
@@ -296,12 +296,12 @@ process reportAppendix {
     label "microbial"
     cpus 1
     input:
-      tuple val(sample_id), val(barcode), path(fastq), val(sample_type), val(sample_type), file(variants), val(sample_type), file(coverage)
-      file ntc_coverage
-      file pos_coverage
-      file report_config
+      tuple val(sample_id), val(barcode), path(fastq), val(sample_type), val(sample_type), path(variants), val(sample_type), path(coverage)
+      path ntc_coverage
+      path pos_coverage
+      path report_config
     output:
-      file "${sample_id}_appendix.html"
+      path "${sample_id}_appendix.html"
     """
     report_appendix.py \
       --revision $workflow.revision \
@@ -345,9 +345,9 @@ process output {
 
     publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
     input:
-        file fname
+        path fname
     output:
-        file fname
+        path fname
     """
     echo "Writing output files"
     """
@@ -445,10 +445,8 @@ workflow pipeline {
         types = region_read_count.map{ it[1]}.collect().map{ it.join(' ')}
         bed_files = region_read_count.map{ it[2]}.collect().map{ it.join(' ')}
 
-
         results = report.concat(
             whatshap_result.map{ it[2]}.collect(),
-            whatshap_result.collect(),
             output_alignments.collect(),
             report_single_sample.collect(),
             report_appendix.collect()
