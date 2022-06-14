@@ -1,5 +1,5 @@
 process handleSingleFile {
-    label params.process_label
+    label "microbial"
     cpus 1
     input:
         file reads
@@ -16,7 +16,7 @@ process handleSingleFile {
 
 
 process checkSampleSheet {
-    label params.process_label
+    label "microbial"
     cpus 1
     input:
         file "sample_sheet.txt"
@@ -233,14 +233,14 @@ def handle_barcoded_dirs(barcoded_dirs, sample_sheet)
         sample_sheet = Channel
             .fromPath(valid_dirs)
             .filter(~/.*barcode[0-9]{1,3}$/)  // up to 192
-            .map { path -> tuple(path.baseName, path.baseName, 'test_sample', path.baseName) }
+            .map { path -> tuple('test_sample', '', path.baseName, path.baseName) }
     }
     return Channel
         .fromPath(valid_dirs)
         .filter(~/.*barcode[0-9]{1,3}$/)  // up to 192
         .map { path -> tuple(path.baseName, path) }
         .join(sample_sheet)
-        .map { barcode, path, sample, type -> tuple(path, sample, type, barcode) }
+        .map { barcode, path, sample, type -> tuple(sample, barcode, path, type) }
 }
 
 
@@ -256,7 +256,7 @@ def handle_non_barcoded_dirs(non_barcoded_dirs)
 {
     valid_dirs = get_valid_directories(non_barcoded_dirs)
     return Channel.fromPath(valid_dirs)
-        .map { path -> tuple(path, path.baseName, 'test_sample', path.baseName) }
+        .map { path -> tuple(path.baseName, path, path.baseName, 'test_sample') }
 }
 
 
