@@ -51,8 +51,7 @@ process alignReads {
     mini_align -i ${sample_fastq} -r ${reference} -p ${sample_id}_tmp -t $task.cpus -m
 
     # keep only mapped reads
-    samtools view -bh -F 4 ${sample_id}_tmp.bam > ${sample_id}.bam
-    samtools index ${sample_id}.bam
+    samtools view --write-index -F 4 ${sample_id}_tmp.bam -o ${sample_id}.bam##idx##${sample_id}.bam.bai
 
     # get stats from bam
     stats_from_bam -o ${sample_id}.bamstats -s ${sample_id}.bam.summary -t $task.cpus ${sample_id}.bam
