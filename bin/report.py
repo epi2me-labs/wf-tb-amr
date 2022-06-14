@@ -323,8 +323,10 @@ def csv_output(samples, canned_text, csv):
             resistance, canned_text['antibiotics'])
 
         abs = ";".join(list(resistance['resistant'].keys()))
-        nuc = []
-        pro = []
+
+        nucleotides = []
+        proteins = []
+
         for ab in list(resistance['resistant'].keys()):
             ab_nuc = []
             ab_pro = []
@@ -334,8 +336,9 @@ def csv_output(samples, canned_text, csv):
                     f"{info['GENE']}.{info['HGVS_NUCLEOTIDE']}")
                 ab_pro.append(
                     f"{info['GENE']}.{info['HGVS_PROTEIN']}")
-            nuc.append(":".join(str(x) for x in ab_nuc))
-            pro.append(":".join(str(x) for x in ab_pro))
+
+            nucleotides.append(":".join(str(x) for x in ab_nuc))
+            proteins.append(":".join(str(x) for x in ab_pro))
 
         line = [
             sample,
@@ -343,9 +346,8 @@ def csv_output(samples, canned_text, csv):
             samples[sample]['qc_status'],
             resistance['resistance_level'],
             abs,
-            ";".join(str(x) for x in nuc),
-            ";".join(str(x) for x in pro)
-            ]
+            ";".join(str(x) for x in nucleotides),
+            ";".join(str(x) for x in proteins)]
 
         output.append(",".join(line))
 
