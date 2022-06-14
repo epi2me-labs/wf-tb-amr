@@ -59,6 +59,7 @@ process alignReads {
     """
 }
 
+
 process downSample {
     label 'microbial'
     cpus params.threads
@@ -421,7 +422,7 @@ workflow pipeline {
       	)
 
         // get barcodes for the called_variants channel
-        for_report = samples.join(whatshap_result.join(region_read_count),failOnMismatch:)
+        for_report = samples.join(whatshap_result.join(region_read_count))
 
         // we want to deal with each sample with the controls so that
         // we can decide on the validity of the result
