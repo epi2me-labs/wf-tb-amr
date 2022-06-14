@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v1.0.6]
 ### Fixed
 - Issue with changes to ingress and reports
-### Changes
+### Changed
 - Better help text on cli
 - Adding variants to csv output
+- Keep only mapped reads
 ### Fixed
 - Downgraded pomoxis to prevent issues with empty bams
 
