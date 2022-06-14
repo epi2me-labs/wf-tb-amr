@@ -11,7 +11,7 @@ dependencies:
     - minimap2 ==2.23
     - samtools ==1.12
     - seqkit ==2.1.0
-    - pomoxis >=0.3.6
+    - pomoxis <=0.3.9
     - pyfaidx ==0.6.3.1
     - bedtools ==2.30.0
     - mosdepth ==0.3.2

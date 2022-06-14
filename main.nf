@@ -27,7 +27,7 @@ process combineFastq {
     label 'microbial'
     cpus 1
     input:
-        tuple path(directory), val(sample_id), val(type), val(barcode)
+        tuple val(sample_id), val(barcode), path(directory), val(type)
     output:
         tuple val(sample_id), val(type), path("${sample_id}.fastq.gz"), emit: sample
         path "${sample_id}.stats", emit: fastqstats
