@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Changes
 - Better help text on cli
+### Fixed
+- Downgraded pomoxis to prevent issues with empty bams
 
 ## [v1.0.5]
 ### Changed
