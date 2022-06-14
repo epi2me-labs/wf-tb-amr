@@ -48,10 +48,16 @@ process alignReads {
         tuple val(sample_id), val(type), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
         tuple path("${sample_id}.bamstats"), path("${sample_id}.bam.summary"), emit: bamstats
     """
-    mini_align -i ${sample_fastq} -r ${reference} -p ${sample_id} -t $task.cpus -m
+    mini_align -i ${sample_fastq} -r ${reference} -p ${sample_id}_tmp -t $task.cpus -m
+
+    # keep only mapped reads
+    samtools view --write-index -F 4 ${sample_id}_tmp.bam -o ${sample_id}.bam##idx##${sample_id}.bam.bai
+
+    # get stats from bam
     stats_from_bam -o ${sample_id}.bamstats -s ${sample_id}.bam.summary -t $task.cpus ${sample_id}.bam
     """
 }
+
 
 process downSample {
     label 'microbial'
