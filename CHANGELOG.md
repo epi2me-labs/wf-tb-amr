@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Changes
 - Better help text on cli
+- Adding variants to csv output
 
 ## [v1.0.5]
 ### Changed
