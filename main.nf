@@ -27,7 +27,7 @@ process combineFastq {
     label 'microbial'
     cpus 1
     input:
-        tuple path(directory), val(sample_id), val(type), val(barcode)
+        tuple val(sample_id), val(barcode), path(directory), val(type)
     output:
         tuple val(sample_id), val(type), path("${sample_id}.fastq.gz"), emit: sample
         path "${sample_id}.stats", emit: fastqstats
@@ -48,7 +48,13 @@ process alignReads {
         tuple val(sample_id), val(type), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
         tuple path("${sample_id}.bamstats"), path("${sample_id}.bam.summary"), emit: bamstats
     """
-    mini_align -i ${sample_fastq} -r ${reference} -p ${sample_id} -t $task.cpus -m
+    mini_align -i ${sample_fastq} -r ${reference} -p ${sample_id}_tmp -t $task.cpus -m
+
+    # keep only mapped reads
+    samtools view -bh -F 4 ${sample_id}_tmp.bam > ${sample_id}.bam
+    samtools index ${sample_id}.bam
+
+    # get stats from bam
     stats_from_bam -o ${sample_id}.bamstats -s ${sample_id}.bam.summary -t $task.cpus ${sample_id}.bam
     """
 }
@@ -415,7 +421,7 @@ workflow pipeline {
       	)
 
         // get barcodes for the called_variants channel
-        for_report = samples.join(whatshap_result.join(region_read_count))
+        for_report = samples.join(whatshap_result.join(region_read_count),failOnMismatch:)
 
         // we want to deal with each sample with the controls so that
         // we can decide on the validity of the result
