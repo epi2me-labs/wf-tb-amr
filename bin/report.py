@@ -308,7 +308,7 @@ def section_reads_per_barcode(args, report_doc):
 
 def csv_output(samples, canned_text, csv):
     """Make a csv results file."""
-    output = ["sample,type,status,call,resistant"]
+    output = ["sample,type,status,call,resistant,hgvs_nucleotide,hgvs_protein"]
 
     for sample in samples:
         # print(samples[sample])
@@ -323,13 +323,31 @@ def csv_output(samples, canned_text, csv):
             resistance, canned_text['antibiotics'])
 
         abs = ";".join(list(resistance['resistant'].keys()))
+
+        nucleotides = []
+        proteins = []
+
+        for ab in list(resistance['resistant'].keys()):
+            ab_nuc = []
+            ab_pro = []
+            for variant in resistance['resistant'][ab]['variants']:
+                info = variant.INFO
+                ab_nuc.append(
+                    f"{info['GENE']}.{info['HGVS_NUCLEOTIDE']}")
+                ab_pro.append(
+                    f"{info['GENE']}.{info['HGVS_PROTEIN']}")
+
+            nucleotides.append(":".join(str(x) for x in ab_nuc))
+            proteins.append(":".join(str(x) for x in ab_pro))
+
         line = [
             sample,
             sample_type,
             samples[sample]['qc_status'],
             resistance['resistance_level'],
-            abs
-            ]
+            abs,
+            ";".join(str(x) for x in nucleotides),
+            ";".join(str(x) for x in proteins)]
 
         output.append(",".join(line))
 
