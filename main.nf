@@ -136,7 +136,7 @@ process mpileup {
 
     # annotate pileup - if you don't use non-norm db then you lose annotations
     bcftools annotate \
-      -c CHROM,POS,REF,GENE,STRAND,AA,FEATURE_TYPE,EFFECT,GENE_LOCUS,WHO_POS,ANTIBIOTICS,PROTEIN_ID,HGVS_NUCLEOTIDE,HGVS_PROTEIN,CODON_NUMBER,ORIGIN \
+      -c CHROM,POS,REF,GENE,STRAND,IGNORE_SB,AA,FEATURE_TYPE,EFFECT,GENE_LOCUS,WHO_POS,ANTIBIOTICS,PROTEIN_ID,HGVS_NUCLEOTIDE,HGVS_PROTEIN,CODON_NUMBER,ORIGIN \
       -h ${bcf_annotate_template} \
       -a ${variant_db} \
       ${sample_id}.mpileup.vcf.gz.norm | bcftools filter -i 'INFO/ORIGIN="WHO_CANONICAL"' - > ${sample_id}.mpileup.annotated.vcf
