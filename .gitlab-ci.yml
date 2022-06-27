@@ -9,6 +9,7 @@ variables:
     # Only common file inputs and option values need to be given here
     # (not things such as -profile)
     NF_WORKFLOW_OPTS: "--fastq test_data/fastq --sample_sheet test_data/sample_sheet.csv"
+    NF_IGNORE_PROCESSES: "downSample"
 
 pytest:
     image: ubuntu:20.04
