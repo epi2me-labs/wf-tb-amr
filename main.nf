@@ -106,7 +106,7 @@ process mpileup {
         path genbank
         path amplicons_bed
     output:
-        tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.pr0cessed.vcf"),  path("${sample_id}.mpileup.annotated.pr0cessed.PASS.vcf"), path(bam), path(bam_index)
+        tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.processed.vcf"),  path("${sample_id}.mpileup.annotated.processed.PASS.vcf"), path(bam), path(bam_index)
 
     """
     #bcftools doesn't like non-normed regions
@@ -145,7 +145,7 @@ process mpileup {
     process_mpileup.py \
       --template ${vcf_template} \
       --mpileup ${sample_id}.mpileup.annotated.vcf \
-      --out_vcf ${sample_id}.mpileup.annotated.pr0cessed.vcf \
+      --out_vcf ${sample_id}.mpileup.annotated.processed.vcf \
       --sample ${sample_id} \
       -a $params.maf \
       -d $params.minimum_read_support \
@@ -153,7 +153,7 @@ process mpileup {
       -p 20
 
     # filter PASS variants
-    bcftools view --exclude-type indels ${sample_id}.mpileup.annotated.pr0cessed.vcf | bcftools view -f 'PASS' - > ${sample_id}.mpileup.annotated.pr0cessed.PASS.vcf
+    bcftools view --exclude-type indels ${sample_id}.mpileup.annotated.processed.vcf | bcftools view -f 'PASS' - > ${sample_id}.mpileup.annotated.processed.PASS.vcf
     """
 
 }
@@ -168,7 +168,7 @@ process whatshap {
         path variant_db
         path vcf_template
         path bcf_annotate_template
-        tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.pr0cessed.vcf"),  path("${sample_id}.mpileup.annotated.pr0cessed.PASS.vcf"), path(bam), path(bam_index)
+        tuple val(sample_id), val(type), path("${sample_id}.mpileup.annotated.processed.vcf"),  path("${sample_id}.mpileup.annotated.processed.PASS.vcf"), path(bam), path(bam_index)
     output:
         tuple val(sample_id), val(type), path("${sample_id}.final.vcf")
 
@@ -184,7 +184,7 @@ process whatshap {
     whatshap phase \
       -o ${sample_id}.phased.vcf \
       --reference=${reference} \
-      ${sample_id}.mpileup.annotated.pr0cessed.PASS.vcf ${sample_id}.rg.bam
+      ${sample_id}.mpileup.annotated.processed.PASS.vcf ${sample_id}.rg.bam
 
     # add codon numbers to those variants which are noit in our db but we want to phase because they could affect the same codon
     vcf-annotator ${sample_id}.phased.vcf ${genbank} > ${sample_id}.phased.codon.vcf
@@ -192,25 +192,25 @@ process whatshap {
     # process phased variants
     process_whatshap.py \
       --phased_vcf ${sample_id}.phased.codon.vcf \
-      --out_vcf ${sample_id}.phased.pr0cessed.vcf \
+      --out_vcf ${sample_id}.phased.processed.vcf \
       --template ${vcf_template}
 
     # sort
-    bcftools sort ${sample_id}.phased.pr0cessed.vcf > ${sample_id}.phased.pr0cessed.sorted.vcf
+    bcftools sort ${sample_id}.phased.processed.vcf > ${sample_id}.phased.processed.sorted.vcf
 
     # re-annotate our newly phased variants
-    bgzip ${sample_id}.phased.pr0cessed.sorted.vcf
-    tabix ${sample_id}.phased.pr0cessed.sorted.vcf.gz
+    bgzip ${sample_id}.phased.processed.sorted.vcf
+    tabix ${sample_id}.phased.processed.sorted.vcf.gz
     tabix ${variant_db}
 
     bcftools annotate \
       -c CHROM,POS,REF,GENE,STRAND,AA,FEATURE_TYPE,EFFECT,GENE_LOCUS,WHO_POS,ANTIBIOTICS,PROTEIN_ID,HGVS_NUCLEOTIDE,HGVS_PROTEIN,CODON_NUMBER,ORIGIN \
       -h ${bcf_annotate_template} \
       -a ${variant_db} \
-      ${sample_id}.phased.pr0cessed.sorted.vcf.gz > ${sample_id}.phased.pr0cessed.sorted.annotated.vcf
+      ${sample_id}.phased.processed.sorted.vcf.gz > ${sample_id}.phased.processed.sorted.annotated.vcf
 
     # filter out those without annotation - they are not in the WHO database
-    bcftools filter -i 'INFO/ORIGIN=="WHO_CANONICAL"' ${sample_id}.phased.pr0cessed.sorted.annotated.vcf > ${sample_id}.final.vcf
+    bcftools filter -i 'INFO/ORIGIN=="WHO_CANONICAL"' ${sample_id}.phased.processed.sorted.annotated.vcf > ${sample_id}.final.vcf
     """
 }
 
