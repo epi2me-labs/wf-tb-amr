@@ -1,4 +1,5 @@
 ##INFO=<ID=INDEL,Number=0,Type=Flag,Description="Indicates that the variant is an INDEL.">
+##INFO=<ID=IGNORE_SB,Number=0,Type=Flag,Description="Indicates ignoring strand bias filter.">
 ##INFO=<ID=AA,Number=1,Type=String,Description="Amino acid change">
 ##INFO=<ID=CODON_NUMBER,Number=1,Type=String,Description="Amino acid position">
 ##INFO=<ID=ANTIBIOTICS,Number=.,Type=String,Description="WHO antibiotic resistance rating: <ANTIBIOTIC>|<RATING>">
