@@ -308,7 +308,20 @@ def section_reads_per_barcode(args, report_doc):
 
 def csv_output(samples, canned_text, csv):
     """Make a csv results file."""
-    output = ["sample,type,status,call,resistant,hgvs_nucleotide,hgvs_protein"]
+    output = [",".join([
+        "sample",
+        "type",
+        "status",
+        "call",
+        "grp1_resistance",
+        "grp1_hgvs_nucleotide",
+        "grp1_hgvs_protein",
+        "grp2_resistance",
+        "grp2_hgvs_nucleotide",
+        "grp2_hgvs_protein",
+        "grp3_resistance",
+        "grp3_hgvs_nucleotide",
+        "grp3_hgvs_protein"])]
 
     for sample in samples:
         # print(samples[sample])
@@ -316,38 +329,47 @@ def csv_output(samples, canned_text, csv):
 
         vcf_file = f"variants/{sample}.final.vcf"
 
-        resistance = process_resistance(
-            vcf_file, canned_text['antibiotics'], 1)
-
-        resistance = call_resistance(
-            resistance, canned_text['antibiotics'])
-
-        abs = ";".join(list(resistance['resistant'].keys()))
-
-        nucleotides = []
-        proteins = []
-
-        for ab in list(resistance['resistant'].keys()):
-            ab_nuc = []
-            ab_pro = []
-            for variant in resistance['resistant'][ab]['variants']:
-                info = variant.INFO
-                ab_nuc.append(
-                    f"{info['GENE']}.{info['HGVS_NUCLEOTIDE']}")
-                ab_pro.append(
-                    f"{info['GENE']}.{info['HGVS_PROTEIN']}")
-
-            nucleotides.append(":".join(str(x) for x in ab_nuc))
-            proteins.append(":".join(str(x) for x in ab_pro))
-
         line = [
             sample,
             sample_type,
-            samples[sample]['qc_status'],
-            resistance['resistance_level'],
-            abs,
-            ";".join(str(x) for x in nucleotides),
-            ";".join(str(x) for x in proteins)]
+            samples[sample]['qc_status']]
+
+        for i in [1, 2, 3]:
+            resistance = process_resistance(
+                vcf_file, canned_text['antibiotics'], i)
+
+            resistance = call_resistance(
+                resistance, canned_text['antibiotics'])
+
+            abs = ";".join(list(resistance['resistant'].keys()))
+
+            nucleotides = []
+            proteins = []
+
+            for ab in list(resistance['resistant'].keys()):
+                ab_nuc = []
+                ab_pro = []
+                for variant in resistance['resistant'][ab]['variants']:
+                    info = variant.INFO
+                    ab_nuc.append(
+                        f"{info['GENE']}.{info['HGVS_NUCLEOTIDE']}")
+                    ab_pro.append(
+                        f"{info['GENE']}.{info['HGVS_PROTEIN']}")
+
+                nucleotides.append(":".join(str(x) for x in ab_nuc))
+                proteins.append(":".join(str(x) for x in ab_pro))
+            if i == 1:
+
+                line = line + [
+                    resistance['resistance_level'],
+                    abs,
+                    ";".join(str(x) for x in nucleotides),
+                    ";".join(str(x) for x in proteins)]
+            else:
+                line = line + [
+                    abs,
+                    ";".join(str(x) for x in nucleotides),
+                    ";".join(str(x) for x in proteins)]
 
         output.append(",".join(line))
 
