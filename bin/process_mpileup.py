@@ -175,28 +175,33 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
                 new_record.INFO['ALT_DEPTH'] = ADF + ADR
 
             # if strand bias is an issue - apply filter
-            try:
-                # do a fishers exact test
-                d = {'forward': [ref_ADF, ADF], 'reverse': [ref_ADR, ADR]}
-                table = pandas.DataFrame(data=d, index=['REF', 'ALT'])
+            if 'IGNORE_SB' not in record.INFO:
 
-                oddsr, p = fisher_exact(table, alternative='two-sided')
-                if p == 0:
-                    p = sys.float_info.min
+                try:
+                    # do a fishers exact test
+                    d = {'forward': [ref_ADF, ADF], 'reverse': [ref_ADR, ADR]}
+                    table = pandas.DataFrame(data=d, index=['REF', 'ALT'])
 
-                phred = -10 * math.log10(p)
+                    oddsr, p = fisher_exact(table, alternative='two-sided')
+                    if p == 0:
+                        p = sys.float_info.min
 
-                new_record.INFO['FS_SB'] = f'{phred:.2f}'
+                    phred = -10 * math.log10(p)
 
-                if phred > STRAND_BIAS_CUTOFF:
-                    logging.info(
-                        f"""\tFAILED STRAND_BIAS {ALT} FWD: {ADF}/{ref_ADF}"""
-                        f""" REV: {ADR}/{ref_ADR} AF: {AF}""")
+                    new_record.INFO['FS_SB'] = f'{phred:.2f}'
+
+                    if phred > STRAND_BIAS_CUTOFF:
+                        logging.info(
+                            f"\tFAILED STRAND_BIAS {ALT} FWD: {ADF}/{ref_ADF}"
+                            f" REV: {ADR}/{ref_ADR} AF: {AF}")
+                        new_record.FILTER.append('STRAND_BIAS')
+
+                # This case we couldn't calculate strand bias
+                except ZeroDivisionError:
                     new_record.FILTER.append('STRAND_BIAS')
+                    new_record.INFO['FS_SB'] = None
 
-            # This case we couldn't calculate strand bias
-            except ZeroDivisionError:
-                new_record.FILTER.append('STRAND_BIAS')
+            else:
                 new_record.INFO['FS_SB'] = None
 
             # make a VCF record - we probably need more for the info field here
