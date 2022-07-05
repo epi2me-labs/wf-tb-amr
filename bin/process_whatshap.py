@@ -86,12 +86,8 @@ def combine_phased_variants(phase_group, variants):
     refs = list()
     alts = list()
     infos = dict()
-    codons = dict()
-    for variant in variants:
 
-        if variant.INFO['CodonPosition'] not in codons:
-            codons[variant.INFO['CodonPosition']] = list()
-        codons[variant.INFO['CodonPosition']].append(variant)
+    for variant in variants:
 
         refs.append(variant.REF)
 
