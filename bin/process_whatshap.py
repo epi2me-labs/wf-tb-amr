@@ -49,6 +49,31 @@ def check_phase_status(record):
     return False
 
 
+def check_codon_status(phase_group, vcf_writer):
+    """
+    Check the codon our phased variants is in.
+
+    We need to know if they are in the same codon or not. If not just write to
+    file. If yes keep for processing.
+    """
+    new_phase_groups = dict()
+    for position in phase_group:
+        codons = dict()
+        for variant in phase_group[position]:
+
+            if variant.INFO['CodonPosition'] not in codons:
+                codons[variant.INFO['CodonPosition']] = list()
+            codons[variant.INFO['CodonPosition']].append(variant)
+
+        for codon in codons:
+            if len(codons[codon]) > 1:
+                new_phase_groups[position] = codons[codon]
+            else:
+                vcf_writer.write_record(codons[codon][0])
+
+    return new_phase_groups
+
+
 def combine_phased_variants(phase_group, variants):
     """
     Combine our phased variants.
@@ -61,10 +86,12 @@ def combine_phased_variants(phase_group, variants):
     refs = list()
     alts = list()
     infos = dict()
-    codon = list()
+    codons = dict()
     for variant in variants:
 
-        codon.append(variant.INFO['CodonPosition'])
+        if variant.INFO['CodonPosition'] not in codons:
+            codons[variant.INFO['CodonPosition']] = list()
+        codons[variant.INFO['CodonPosition']].append(variant)
 
         refs.append(variant.REF)
 
@@ -78,10 +105,6 @@ def combine_phased_variants(phase_group, variants):
             infos = variant.INFO
         else:
             pass
-
-    # check for variants not in same codon
-    if len(set(codon)) > 1:
-        return variants
 
     to_remove = [
         'AA',
@@ -143,10 +166,14 @@ def process_whathap(phased_vcf, template_file, out_vcf):
 
         phase_groups[phase_group].append(record)
 
+    # for our phased varinats check if they are in the same codon and make
+    # new groups if they are
+    codon_aware_phase_groups = check_codon_status(phase_groups, vcf_writer)
+
     # now process our phased variants
-    for phase_group in phase_groups:
+    for phase_group in codon_aware_phase_groups:
         phased_record = combine_phased_variants(
-            phase_group, phase_groups[phase_group])
+            phase_group, codon_aware_phase_groups[phase_group])
         for variant in phased_record:
             vcf_writer.write_record(variant)
 

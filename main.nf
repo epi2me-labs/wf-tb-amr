@@ -205,6 +205,7 @@ process whatshap {
 
     bcftools annotate \
       -c CHROM,POS,REF,GENE,STRAND,AA,FEATURE_TYPE,EFFECT,GENE_LOCUS,WHO_POS,ANTIBIOTICS,PROTEIN_ID,HGVS_NUCLEOTIDE,HGVS_PROTEIN,CODON_NUMBER,ORIGIN \
+      --remove INFO/FeatureType,INFO/IsSynonymous,INFO/IsTransition,INFO/IsGenic,INFO/IsPseudo,INFO/Inference,INFO/AltCodon,INFO/AltAminoAcid,INFO/Note,INFO/AminoAcidChange,INFO/Product,INFO/SNPCodonPosition \
       -h ${bcf_annotate_template} \
       -a ${variant_db} \
       ${sample_id}.phased.processed.sorted.vcf.gz > ${sample_id}.phased.processed.sorted.annotated.vcf
