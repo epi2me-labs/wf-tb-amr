@@ -1,0 +1,11 @@
+##fileformat=VCFv4.2
+##INFO=<ID=CodonPosition,Number=1,Type=Integer,Description="Codon position in the gene">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO  FORMAT  SAMPLE
+NC_000962.3  102 . A C . PASS  CodonPosition=1 GT:PS 1|0:100
+NC_000962.3  100 . A C . PASS  CodonPosition=1 GT:PS 1|0:100
+NC_000962.3  104 . G T . PASS  CodonPosition=2 GT:PS 1|0:100
+NC_000962.3  105 . G T . PASS  CodonPosition=2 GT:PS 1|0:100
+NC_000962.3  110 . C A . PASS  CodonPosition=4 GT:PS 1|0:100
+NC_000962.3  120 . A T . PASS  CodonPosition=7 GT:PS 1|0:120
+NC_000962.3  121 . T C . PASS  CodonPosition=7 GT:PS 1|0:120
+NC_000962.3  122 . C A . PASS  CodonPosition=7 GT:PS 1|0:120
