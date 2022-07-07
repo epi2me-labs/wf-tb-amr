@@ -485,53 +485,60 @@ workflow {
     }
 
     start_ping()
-    samples = fastq_ingress(
-        params.fastq, params.out_dir, params.sample, params.sample_sheet, params.sanitize_fastq).filter {it[0] != "unclassified"}
+    // samples = fastq_ingress(
+        // params.fastq, params.out_dir, params.sample, params.sample_sheet, params.sanitize_fastq).filter {it[0] != "unclassified"}
+
+    samples = fastq_ingress([
+      "input":params.fastq,
+      "sample":params.sample,
+      "sample_sheet":params.sample_sheet,
+      "sanitize": params.sanitize_fastq,
+      "output":params.out_dir]).filter{it[0] != "unclassified"}
 
       //get reference
-      if (params.reference == null){
-        params.remove('reference')
-        params._reference = projectDir.resolve("./data/primer_schemes/V2/NC_000962.3.fasta").toString()
-      } else {
-        params._reference = file(params.reference, type: "file", checkIfExists:true).toString()
-        params.remove('reference')
-      }
+    if (params.reference == null){
+      params.remove('reference')
+      params._reference = projectDir.resolve("./data/primer_schemes/V2/NC_000962.3.fasta").toString()
+    } else {
+      params._reference = file(params.reference, type: "file", checkIfExists:true).toString()
+      params.remove('reference')
+    }
 
-      // Variant DB
-      if (params.variant_db == null){
-        params.remove('variant_db')
-        params._variant_db = projectDir.resolve("./data/primer_schemes/V2/variant_db.sorted.normalised.vcf.gz").toString()
-      } else {
-        params._variant_db = file(params.variant_db, type: "file", checkIfExists:true).toString()
-        params.remove('variant_db')
-      }
+    // Variant DB
+    if (params.variant_db == null){
+      params.remove('variant_db')
+      params._variant_db = projectDir.resolve("./data/primer_schemes/V2/variant_db.sorted.normalised.vcf.gz").toString()
+    } else {
+      params._variant_db = file(params.variant_db, type: "file", checkIfExists:true).toString()
+      params.remove('variant_db')
+    }
 
-      // Genbank
-      if (params.genbank == null){
-        params.remove('genbank')
-        params._genbank = projectDir.resolve("./data/primer_schemes/V2/NC_000962.3.gb").toString()
-      } else {
-        params._genbank = file(params.genbank, type: "file", checkIfExists:true).toString()
-        params.remove('genbank')
-      }
+    // Genbank
+    if (params.genbank == null){
+      params.remove('genbank')
+      params._genbank = projectDir.resolve("./data/primer_schemes/V2/NC_000962.3.gb").toString()
+    } else {
+      params._genbank = file(params.genbank, type: "file", checkIfExists:true).toString()
+      params.remove('genbank')
+    }
 
-      // TB amplicons
-      if (params.amplicons_bed == null){
-        params.remove('amplicons_bed')
-        params._amplicons_bed = projectDir.resolve("./data/primer_schemes/V2/TB_amplicons.bed").toString()
-      } else {
-        params._amplicons_bed = file(params.reference, type: "file", checkIfExists:true).toString()
-        params.remove('amplicons_bed')
-      }
+    // TB amplicons
+    if (params.amplicons_bed == null){
+      params.remove('amplicons_bed')
+      params._amplicons_bed = projectDir.resolve("./data/primer_schemes/V2/TB_amplicons.bed").toString()
+    } else {
+      params._amplicons_bed = file(params.reference, type: "file", checkIfExists:true).toString()
+      params.remove('amplicons_bed')
+    }
 
-      // Single sample report text
-      if (params.report_config == null){
-        params.remove('report_config')
-        params._report_config = projectDir.resolve("./data/primer_schemes/V2/report_config.eng.json").toString()
-      } else {
-        params._report_config = file(params.report_config, type: "file", checkIfExists:true).toString()
-        params.remove('report_config')
-      }
+    // Single sample report text
+    if (params.report_config == null){
+      params.remove('report_config')
+      params._report_config = projectDir.resolve("./data/primer_schemes/V2/report_config.eng.json").toString()
+    } else {
+      params._report_config = file(params.report_config, type: "file", checkIfExists:true).toString()
+      params.remove('report_config')
+    }
 
     vcf_template = projectDir.resolve("./data/template.vcf").toString()
     bcf_annotate_template = projectDir.resolve("./data/bcftools_annotate_header.txt").toString()
