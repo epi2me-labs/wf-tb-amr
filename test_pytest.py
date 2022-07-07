@@ -3,9 +3,12 @@
 
 from collections import OrderedDict
 import json
+import tempfile
 
 import bin.common_methods as common_methods
 import bin.create_variant_db as create_variant_db
+import bin.process_whatshap as process_whathap
+import vcf
 
 
 def test_process_resistance():
@@ -712,3 +715,36 @@ def test_variants_table_from_vcf():
 
     print(common_methods.variants_table_from_vcf(
         "test_data/sample.final.variants.sorted.vcf", info_fields, 1))
+
+
+def test_process_whatshap():
+    """Test processing whatshap results."""
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+
+    phased_vcf = "test_data/phasing_test_input.vcf"
+    truth_vcf = "test_data/phasing_test_output.vcf"
+    template = "data/template.vcf"
+    processed_vcf = tmp.name
+
+    process_whathap.process_whathap(phased_vcf, template, processed_vcf)
+
+    vcf_truth = vcf.Reader(filename=truth_vcf)
+
+    vcf_test = vcf.Reader(filename=processed_vcf)
+
+    truth = dict()
+    test = dict()
+
+    for record in vcf_test:
+        test[record.POS] = record
+
+    for record in vcf_truth:
+        truth[record.POS] = record
+
+    for position in truth:
+        assert truth[position].REF == test[position].REF
+        assert truth[position].ALT == test[position].ALT
+
+    for position in test:
+        assert truth[position].REF == test[position].REF
+        assert truth[position].ALT == test[position].ALT

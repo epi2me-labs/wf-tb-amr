@@ -76,6 +76,18 @@ def check_codon_status(phase_group, vcf_writer):
     return new_phase_groups
 
 
+def unique(sequence):
+    """Get uniques in lists for info."""
+    new_sequence = list()
+    for part in sequence:
+        if type(part) == list:
+            part = "|".join(filter(None, part))
+        new_sequence.append(part)
+
+    seen = set()
+    return [x for x in new_sequence if not (x in seen or seen.add(x))]
+
+
 def combine_phased_variants(phase_group, codon, variants):
     """
     Combine our phased variants.
@@ -87,32 +99,54 @@ def combine_phased_variants(phase_group, codon, variants):
     """
     refs = list()
     alts = list()
-    infos = dict()
 
-    print(phase_group)
-    print(codon)
+    codon_positions = {0: None, 1: None, 2: None}
 
+    # sort the variants in the phase group in position order
     sorted_variants = sorted(variants, key=lambda x: x.POS, reverse=False)
+    info_items = sorted_variants[0].INFO
+    ref_codon = sorted_variants[0].INFO['RefCodon']
 
+    # assign variants in phase group to a position in the codon
     for variant in sorted_variants:
-        print(variant)
+        codon_positions[variant.INFO['SNPCodonPosition']] = variant
 
-        refs.append(variant.REF)
+    new_infos = dict()
+    for codon in codon_positions:
+        variant = codon_positions[codon]
 
-        # exit if there is more than one alt - need to deal with this
-        if len(variant.ALT) > 1:
-            exit()
+        # a variant might not be present at each codon position
+        if variant is not None:
+            if len(variant.ALT) > 1:
+                exit()
+            refs.append(variant.REF)
+            alts.append(str(variant.ALT[0]))
 
-        alts.append(str(variant.ALT[0]))
+            for key in info_items:
+                if key not in new_infos:
+                    new_infos[key] = list()
+                new_infos[key].append(variant.INFO[key])
 
-        if variant.POS == phase_group:
-            infos = variant.INFO
-        else:
-            pass
+        # if no variant present in the middle of the codon then we need to pad
+        # the reference and the alt
+        if variant is None and codon == 1:
+            refs.append(ref_codon[codon])
+            alts.append(ref_codon[codon])
 
+            for key in info_items:
+                if key not in new_infos:
+                    new_infos[key] = list()
+                new_infos[key].append(None)
+
+    # combine all infos that have duplicate items
     to_remove = [
         'AA',
         'CODON_NUMBER',
+        'I16',
+        'QS',
+        'AD',
+        'ADF',
+        'ADR',
         'ANTIBIOTICS',
         'GENE',
         'GENE_LOCUS',
@@ -126,7 +160,17 @@ def combine_phased_variants(phase_group, codon, variants):
     ]
 
     for key in to_remove:
-        infos.pop(key, None)
+        new_infos.pop(key, None)
+
+    final_infos = dict()
+    for key in new_infos:
+        print(key)
+        print(new_infos[key])
+        unique_items = unique(new_infos[key])
+        if len(unique_items) > 1:
+            final_infos[key] = unique_items
+        else:
+            final_infos[key] = unique_items[0]
 
     phased_record = vcf.model._Record(
         CHROM="NC_000962.3",
@@ -136,7 +180,7 @@ def combine_phased_variants(phase_group, codon, variants):
         ALT=[vcf.model._Substitution(''.join(alts))],
         QUAL=None,
         FILTER=['PASS'],
-        INFO=infos,
+        INFO=final_infos,
         sample_indexes=None,
         FORMAT=None
     )
@@ -160,7 +204,7 @@ def process_whathap(phased_vcf, template_file, out_vcf):
             continue
 
         phase_group = check_phase_status(record)
-
+        print(phase_group)
         if phase_group is False:
             vcf_writer.write_record(record)
             continue
@@ -169,11 +213,10 @@ def process_whathap(phased_vcf, template_file, out_vcf):
             phase_groups[phase_group] = list()
 
         phase_groups[phase_group].append(record)
-    print(phase_groups)
+
     # for our phased varinats check if they are in the same codon and make
     # new groups if they are
     codon_aware_phase_groups = check_codon_status(phase_groups, vcf_writer)
-    print(codon_aware_phase_groups)
 
     # now process our codon aware phased variants
     for phase_group in codon_aware_phase_groups:
