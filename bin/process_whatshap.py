@@ -78,12 +78,15 @@ def check_codon_status(phase_group, vcf_writer):
 
 def unique(sequence):
     """Get uniques in lists for info."""
+    # sometimes info items are lists, join if so
     new_sequence = list()
+
     for part in sequence:
         if type(part) == list:
             part = "|".join(filter(None, part))
         new_sequence.append(part)
 
+    # retrun only unique values
     seen = set()
     return [x for x in new_sequence if not (x in seen or seen.add(x))]
 
@@ -112,16 +115,23 @@ def combine_phased_variants(phase_group, codon, variants):
         codon_positions[variant.INFO['SNPCodonPosition']] = variant
 
     new_infos = dict()
+
+    # process each codon position
     for codon in codon_positions:
         variant = codon_positions[codon]
 
         # a variant might not be present at each codon position
         if variant is not None:
+
+            # we don't handle multiple alts so exit
             if len(variant.ALT) > 1:
                 exit()
+
+            # append the ref and the alt for the variant
             refs.append(variant.REF)
             alts.append(str(variant.ALT[0]))
 
+            # add all info items so we can use them for the MNP
             for key in info_items:
                 if key not in new_infos:
                     new_infos[key] = list()
@@ -133,6 +143,7 @@ def combine_phased_variants(phase_group, codon, variants):
             refs.append(ref_codon[codon])
             alts.append(ref_codon[codon])
 
+            # add None to the infos for this position
             for key in info_items:
                 if key not in new_infos:
                     new_infos[key] = list()
@@ -162,16 +173,18 @@ def combine_phased_variants(phase_group, codon, variants):
     for key in to_remove:
         new_infos.pop(key, None)
 
+    # we have to now combine info items
     final_infos = dict()
+
     for key in new_infos:
-        print(key)
-        print(new_infos[key])
         unique_items = unique(new_infos[key])
+
         if len(unique_items) > 1:
             final_infos[key] = unique_items
         else:
             final_infos[key] = unique_items[0]
 
+    # this is our new VCF record
     phased_record = vcf.model._Record(
         CHROM="NC_000962.3",
         POS=sorted_variants[0].POS,
@@ -199,16 +212,19 @@ def process_whathap(phased_vcf, template_file, out_vcf):
 
     for record in vcf_reader:
 
+        # check if a variant is coding or not - won't affect annottaion
         if is_variant_eligable(record) is False:
             vcf_writer.write_record(record)
             continue
 
+        # check if a variant is phased
         phase_group = check_phase_status(record)
-        print(phase_group)
+
         if phase_group is False:
             vcf_writer.write_record(record)
             continue
 
+        # add variant to phase groups
         if phase_group not in phase_groups:
             phase_groups[phase_group] = list()
 
