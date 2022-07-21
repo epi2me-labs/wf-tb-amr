@@ -27,13 +27,13 @@ process combineFastq {
     label 'microbial'
     cpus 1
     input:
-        tuple val(sample_id), val(barcode), path(directory), val(type)
+        tuple path(directory), val(meta)
     output:
-        tuple val(sample_id), val(type), path("${sample_id}.fastq.gz"), emit: sample
-        path "${sample_id}.stats", emit: fastqstats
+        tuple val(meta.sample_id), val(meta.type), path("${meta.sample_id}.fastq.gz"), emit: sample
+        path "${meta.sample_id}.stats", emit: fastqstats
     """
-    fastcat -s ${sample_id} -r ${sample_id}.stats -x ${directory} | seqkit seq -m 200 - > ${sample_id}.fastq
-    gzip ${sample_id}.fastq
+    fastcat -s ${meta.sample_id} -r ${meta.sample_id}.stats -x ${directory} | seqkit seq -m 200 - > ${meta.sample_id}.fastq
+    gzip ${meta.sample_id}.fastq
     """
 }
 
@@ -484,8 +484,13 @@ workflow {
     }
 
     start_ping()
-    samples = fastq_ingress(
-        params.fastq, params.out_dir, params.sample, params.sample_sheet, params.sanitize_fastq).filter {it[0] != "unclassified"}
+
+    samples = fastq_ingress([
+        "input":params.fastq,
+        "sample":params.sample,
+        "sample_sheet":params.sample_sheet,
+        "sanitize": params.sanitize_fastq,
+        "output":params.out_dir])
 
       //get reference
       if (params.reference == null){
