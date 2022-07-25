@@ -92,7 +92,7 @@
                     "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,2 - fail is less than 20 reads in less than 2 amplicons",
                     "default": "-20,2"
                 },
-                "regalign": {
+                "realign": {
                     "type": "boolean",
                     "description": "{erform indel realignment",
                     "hidden": true,
