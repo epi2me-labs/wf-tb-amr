@@ -420,8 +420,9 @@ workflow pipeline {
               report_config
       	)
 
+
         // get barcodes for the called_variants channel
-        for_report = samples.join(whatshap_result.join(region_read_count))
+        for_report = samples.map{it -> tuple(it[0],it[1].sample_id,it[1].type,it[1].barcode)}.join(whatshap_result.join(region_read_count))
 
         // we want to deal with each sample with the controls so that
         // we can decide on the validity of the result
