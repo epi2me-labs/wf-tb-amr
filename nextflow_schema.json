@@ -15,6 +15,7 @@
                 "out_dir": {
                     "type": "string",
                     "default": "output",
+                    "format": "directory-path",
                     "description": "Directory for output of all user-facing files."
                 },
                 "fastq": {
@@ -91,6 +92,12 @@
                     "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,2 - fail is less than 20 reads in less than 2 amplicons",
                     "default": "-20,2"
                 },
+                "realign": {
+                    "type": "boolean",
+                    "description": "{erform indel realignment",
+                    "hidden": true,
+                    "default": false
+                },
                 "strand_bias": {
                     "type": "integer",
                     "description": "Set a threshold for strand bias filtering. Strand bias is represented as a phred scaled p-value from a fishers exact test, closer to 0 is good",
@@ -162,6 +169,26 @@
             "hidden": true
         },
         "aws_queue": {
+            "type": "string",
+            "hidden": true
+        },
+        "_reference": {
+            "type": "string",
+            "hidden": true
+        },
+        "_variant_db": {
+            "type": "string",
+            "hidden": true
+        },
+        "_genbank": {
+            "type": "string",
+            "hidden": true
+        },
+        "_amplicons_bed": {
+            "type": "string",
+            "hidden": true
+        },
+        "_report_config": {
             "type": "string",
             "hidden": true
         },
