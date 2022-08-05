@@ -719,7 +719,7 @@ def test_variants_table_from_vcf():
 
 def test_process_whatshap():
     """Test processing whatshap results."""
-    tmp = tempfile.NamedTemporaryFile(delete=False)
+    tmp = tempfile.NamedTemporaryFile(delete=True)
 
     phased_vcf = "test_data/phasing_test_input.vcf"
     truth_vcf = "test_data/phasing_test_output.vcf"
