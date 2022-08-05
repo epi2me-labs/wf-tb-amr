@@ -13,7 +13,7 @@ variables:
 
 pytest:
     image: ubuntu:20.04
-    stage: test
+    stage: pre-flight
     script:
         - apt update -qq && apt install -y -qq python3-venv python3-pip python-is-python3
         - make test

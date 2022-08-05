@@ -251,10 +251,9 @@ def main():
     """
     Squash phased variants in coding regions.
 
-    Code to squash whatshap phased varinats in coding regions so that we
+    Code to squash whatshap phased variants in coding regions so that we
     can get the correct annotaions.
     """
-    """Process our whatshap data."""
     args = load_cmdline_params().parse_args()
 
     logging.basicConfig(
