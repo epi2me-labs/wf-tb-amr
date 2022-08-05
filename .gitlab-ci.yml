@@ -22,3 +22,5 @@ pytest:
         - pip install --upgrade pip
         - pip install wheel
         - pip install pytest pyyaml
+        - pip install -r requirements.txt
+        - pytest
