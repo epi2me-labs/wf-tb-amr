@@ -885,14 +885,16 @@ def target_info(target_name, targets, reads, tile_size, ref_tiles):
 
 def process_samples_inputs(args):
     """Process inputs and make some decisions on QC."""
-    sample_coveage = {
-        sample: {
-            'type': type,
-            'readcount': f"{args.readcounts}/{sample}.bedtools-coverage.bed"
-        } for sample, type in zip(
-            args.samples, args.types
-        )
-    }
+    bed_ext = "bedtools-coverage.bed"
+
+    with open(args.metadata) as metadata:
+        sample_coveage = {
+            d['sample_id']: {
+                'type': d['type'],
+                'barcode': d['barcode'],
+                'readcount': f"{args.readcounts}/{d['sample_id']}.{bed_ext}"
+            } for d in json.load(metadata)
+        }
 
     controls = dict(
         test_sample=dict(threshold=args.sample_threshold),
@@ -959,11 +961,8 @@ def main():
         "--readcounts", default='bed_files',
         help="bedtools coverage for amplicon")
     parser.add_argument(
-        "--samples", nargs='+', default='unknown',
-        help="git commit number")
-    parser.add_argument(
-        "--types", nargs='+', default='unknown',
-        help="git commit number")
+        "--metadata", default='metadata.json',
+        help="sample metadata")
     parser.add_argument(
         "--ntc_threshold", default='20,3',
         help="comma separated string of x,y - where x is \
