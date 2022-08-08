@@ -49,43 +49,115 @@ def check_phase_status(record):
     return False
 
 
-def combine_phased_variants(phase_group, variants):
+def check_codon_status(phase_group, vcf_writer):
+    """
+    Check the codon our phased variants is in.
+
+    We need to know if they are in the same codon or not. If not just write to
+    file. If yes keep for processing.
+    """
+    new_phase_groups = dict()
+    for position in phase_group:
+        codons = dict()
+        for variant in phase_group[position]:
+
+            if variant.INFO['CodonPosition'] not in codons:
+                codons[variant.INFO['CodonPosition']] = list()
+            codons[variant.INFO['CodonPosition']].append(variant)
+
+        for codon in codons:
+            if len(codons[codon]) > 1:
+                if position not in new_phase_groups:
+                    new_phase_groups[position] = dict()
+                new_phase_groups[position][codon] = codons[codon]
+            else:
+                vcf_writer.write_record(codons[codon][0])
+
+    return new_phase_groups
+
+
+def unique(sequence):
+    """Get uniques in lists for info."""
+    # sometimes info items are lists, join if so
+    new_sequence = list()
+
+    for part in sequence:
+        if type(part) == list:
+            part = "|".join(filter(None, part))
+        new_sequence.append(part)
+
+    # retrun only unique values
+    seen = set()
+    return [x for x in new_sequence if not (x in seen or seen.add(x))]
+
+
+def combine_phased_variants(phase_group, codon, variants):
     """
     Combine our phased variants.
 
     Here we take the "lead variant", i.e. the left most and construct a new
-    variant with all of those in phase ion the same codon.
+    variant with all of those in phased in the same codon.
     We preseve the INFO field of non-lead variants in the INFO field under
-    (PREVIOUS_INFO)
+    PREVIOUS_INFO
     """
     refs = list()
     alts = list()
-    infos = dict()
-    codon = list()
-    for variant in variants:
 
-        codon.append(variant.INFO['CodonPosition'])
+    codon_positions = {0: None, 1: None, 2: None}
 
-        refs.append(variant.REF)
+    # sort the variants in the phase group in position order
+    sorted_variants = sorted(variants, key=lambda x: x.POS, reverse=False)
+    info_items = sorted_variants[0].INFO
+    ref_codon = sorted_variants[0].INFO['RefCodon']
 
-        # exit if there is more than one alt - need to deal with this
-        if len(variant.ALT) > 1:
-            exit()
+    # assign variants in phase group to a position in the codon
+    for variant in sorted_variants:
+        codon_positions[variant.INFO['SNPCodonPosition']] = variant
 
-        alts.append(str(variant.ALT[0]))
+    new_infos = dict()
 
-        if variant.POS == phase_group:
-            infos = variant.INFO
-        else:
-            pass
+    # process each codon position
+    for codon in codon_positions:
+        variant = codon_positions[codon]
 
-    # check for variants not in same codon
-    if len(set(codon)) > 1:
-        return variants
+        # a variant might not be present at each codon position
+        if variant is not None:
 
+            # we don't handle multiple alts so exit
+            if len(variant.ALT) > 1:
+                exit()
+
+            # append the ref and the alt for the variant
+            refs.append(variant.REF)
+            alts.append(str(variant.ALT[0]))
+
+            # add all info items so we can use them for the MNP
+            for key in info_items:
+                if key not in new_infos:
+                    new_infos[key] = list()
+                new_infos[key].append(variant.INFO[key])
+
+        # if no variant present in the middle of the codon then we need to pad
+        # the reference and the alt
+        if variant is None and codon == 1:
+            refs.append(ref_codon[codon])
+            alts.append(ref_codon[codon])
+
+            # add None to the infos for this position
+            for key in info_items:
+                if key not in new_infos:
+                    new_infos[key] = list()
+                new_infos[key].append(None)
+
+    # combine all infos that have duplicate items
     to_remove = [
         'AA',
         'CODON_NUMBER',
+        'I16',
+        'QS',
+        'AD',
+        'ADF',
+        'ADR',
         'ANTIBIOTICS',
         'GENE',
         'GENE_LOCUS',
@@ -99,17 +171,29 @@ def combine_phased_variants(phase_group, variants):
     ]
 
     for key in to_remove:
-        infos.pop(key, None)
+        new_infos.pop(key, None)
 
+    # we have to now combine info items
+    final_infos = dict()
+
+    for key in new_infos:
+        unique_items = unique(new_infos[key])
+
+        if len(unique_items) > 1:
+            final_infos[key] = unique_items
+        else:
+            final_infos[key] = unique_items[0]
+
+    # this is our new VCF record
     phased_record = vcf.model._Record(
         CHROM="NC_000962.3",
-        POS=phase_group,
+        POS=sorted_variants[0].POS,
         ID=None,
         REF=''.join(refs),
         ALT=[vcf.model._Substitution(''.join(alts))],
         QUAL=None,
         FILTER=['PASS'],
-        INFO=infos,
+        INFO=final_infos,
         sample_indexes=None,
         FORMAT=None
     )
@@ -128,27 +212,37 @@ def process_whathap(phased_vcf, template_file, out_vcf):
 
     for record in vcf_reader:
 
+        # check if a variant is coding or not - won't affect annottaion
         if is_variant_eligable(record) is False:
             vcf_writer.write_record(record)
             continue
 
+        # check if a variant is phased
         phase_group = check_phase_status(record)
 
         if phase_group is False:
             vcf_writer.write_record(record)
             continue
 
+        # add variant to phase groups
         if phase_group not in phase_groups:
             phase_groups[phase_group] = list()
 
         phase_groups[phase_group].append(record)
 
-    # now process our phased variants
-    for phase_group in phase_groups:
-        phased_record = combine_phased_variants(
-            phase_group, phase_groups[phase_group])
-        for variant in phased_record:
-            vcf_writer.write_record(variant)
+    # for our phased varinats check if they are in the same codon and make
+    # new groups if they are
+    codon_aware_phase_groups = check_codon_status(phase_groups, vcf_writer)
+
+    # now process our codon aware phased variants
+    for phase_group in codon_aware_phase_groups:
+        for codon in codon_aware_phase_groups[phase_group]:
+            phased_record = combine_phased_variants(
+                phase_group,
+                codon,
+                codon_aware_phase_groups[phase_group][codon])
+            for variant in phased_record:
+                vcf_writer.write_record(variant)
 
     vcf_writer.close()
 
@@ -157,10 +251,9 @@ def main():
     """
     Squash phased variants in coding regions.
 
-    Code to squash whatshap phased varinats in coding regions so that we
+    Code to squash whatshap phased variants in coding regions so that we
     can get the correct annotaions.
     """
-    """Process our whatshap data."""
     args = load_cmdline_params().parse_args()
 
     logging.basicConfig(

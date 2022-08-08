@@ -1,0 +1,9 @@
+##fileformat=VCFv4.2
+##INFO=<ID=CodonPosition,Number=1,Type=Integer,Description="Codon position in the gene">
+##INFO=<ID=RefCodon,Number=.,Type=String,Description="Reference codon">
+##INFO=<ID=SNPCodonPosition,Number=1,Type=Integer,Description="SNP position in the codon">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO  FORMAT  SAMPLE
+NC_000962.3 100 . ATA CTC . PASS  . . .
+NC_000962.3 104 . GG TT . PASS  . . .
+NC_000962.3 110 . C A . PASS  . . .
+NC_000962.3 120 . ATC TCA . PASS  . . .

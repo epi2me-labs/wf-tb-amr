@@ -41,24 +41,24 @@
 ##INFO=<ID=AF,Number=1,Type=Float,Description="Alternative allele frequency">
 ##INFO=<ID=REF_CODON,Number=1,Type=String,Description="Reference codon">
 ##INFO=<ID=ALT_CODON,Number=1,Type=String,Description="Alt Codon">
-##INFO=<ID=RefCodon,Number=.,Type=String,Description="Reference codon">
-##INFO=<ID=AltCodon,Number=.,Type=String,Description="Alternate codon">
-##INFO=<ID=RefAminoAcid,Number=.,Type=String,Description="Reference amino acid">
-##INFO=<ID=AltAminoAcid,Number=.,Type=String,Description="Alternate amino acid">
+##INFO=<ID=RefCodon,Number=1,Type=String,Description="Reference codon">
+##INFO=<ID=AltCodon,Number=1,Type=String,Description="Alternate codon">
+##INFO=<ID=RefAminoAcid,Number=1,Type=String,Description="Reference amino acid">
+##INFO=<ID=AltAminoAcid,Number=1,Type=String,Description="Alternate amino acid">
 ##INFO=<ID=CodonPosition,Number=1,Type=Integer,Description="Codon position in the gene">
 ##INFO=<ID=SNPCodonPosition,Number=1,Type=Integer,Description="SNP position in the codon">
-##INFO=<ID=AminoAcidChange,Number=.,Type=String,Description="Amino acid change">
+##INFO=<ID=AminoAcidChange,Number=1,Type=String,Description="Amino acid change">
 ##INFO=<ID=IsSynonymous,Number=1,Type=Integer,Description="0:nonsynonymous, 1:synonymous, 9:N/A or Unknown">
 ##INFO=<ID=IsTransition,Number=1,Type=Integer,Description="0:transversion, 1:transition, 9:N/A or Unknown">
 ##INFO=<ID=IsGenic,Number=1,Type=Integer,Description="0:intergenic, 1:genic">
 ##INFO=<ID=IsPseudo,Number=1,Type=Integer,Description="0:not pseudo, 1:pseudo gene">
-##INFO=<ID=LocusTag,Number=.,Type=String,Description="Locus tag associated with gene">
-##INFO=<ID=Gene,Number=.,Type=String,Description="Name of gene">
-##INFO=<ID=Note,Number=.,Type=String,Description="Note associated with gene">
-##INFO=<ID=Inference,Number=.,Type=String,Description="Inference of feature.">
-##INFO=<ID=Product,Number=.,Type=String,Description="Description of gene">
-##INFO=<ID=ProteinID,Number=.,Type=String,Description="Protein ID of gene">
-##INFO=<ID=Comments,Number=.,Type=String,Description="Example: Negative strand: T->C">
-##INFO=<ID=VariantType,Number=.,Type=String,Description="Indel, SNP, Ambiguous_SNP">
-##INFO=<ID=FeatureType,Number=.,Type=String,Description="The feature type of variant.">
+##INFO=<ID=LocusTag,Number=1,Type=String,Description="Locus tag associated with gene">
+##INFO=<ID=Gene,Number=1,Type=String,Description="Name of gene">
+##INFO=<ID=Note,Number=1,Type=String,Description="Note associated with gene">
+##INFO=<ID=Inference,Number=1,Type=String,Description="Inference of feature.">
+##INFO=<ID=Product,Number=1,Type=String,Description="Description of gene">
+##INFO=<ID=ProteinID,Number=1,Type=String,Description="Protein ID of gene">
+##INFO=<ID=Comments,Number=1,Type=String,Description="Example: Negative strand: T->C">
+##INFO=<ID=VariantType,Number=1,Type=String,Description="Indel, SNP, Ambiguous_SNP">
+##INFO=<ID=FeatureType,Number=1,Type=String,Description="The feature type of variant.">
 #CHROM POS ID REF ALT QUAL FILTER INFO
