@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Fixed
 - Issue with phased variants
+- Issue with report when there are unclassified reads
 ### Changed
 - Fastqingress metadata map
 
