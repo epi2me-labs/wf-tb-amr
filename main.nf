@@ -234,8 +234,7 @@ process report {
     label "microbial"
     cpus 1
     input:
-        val samples
-        val types
+        val metadata
         path "bed_files/*"
 	      path "per_barcode_stats/*"
         path "variants/*"
@@ -247,7 +246,10 @@ process report {
         path report_config
     output:
         tuple path("wf-tb-amr-report.html"), path("wf-tb-amr-report.csv")
+    script:
+    def metadata = new JsonBuilder(metadata).toPrettyString()
     """
+    echo '${metadata}' > metadata.json
     report.py \
         --revision $workflow.revision \
         --commit $workflow.commitId \
@@ -257,8 +259,7 @@ process report {
         --params params.json \
         --pickedreads pickedreads/* \
         --reference $reference \
-        --samples $samples \
-        --types $types \
+        --metadata metadata.json \
         --readcounts bed_files \
         --ntc_threshold="${params.ntc_threshold}" \
         --positive_threshold="${params.positive_threshold}" \
@@ -403,13 +404,9 @@ workflow pipeline {
         // do some coverage calcs
         region_read_count = countReadsRegions(amplicons_bed, downsample[0])
 
-        samples_region = region_read_count.bed_files.map{it[0]}.collect().map{it.join(' ')}
-        types = region_read_count.bed_files.map{it[1]}.collect().map{it.join(' ')}
-
         // generate run report
       	report = report(
-              samples_region,
-              types,
+              samples.map { it -> return it[1] }.toList(),
               region_read_count.bed_files.map{it[2]}.collect(),
       	      sample_fastqs.fastqstats.collect(),
               whatshap_result.map{it[2]}.collect(),
@@ -449,11 +446,6 @@ workflow pipeline {
 
         output_alignments = alignments[0].map{ it -> return tuple(it[2], it[3]) }
 
-
-        samples = region_read_count.map{ it[0]}.collect().map{ it.join(' ')}
-        types = region_read_count.map{ it[1]}.collect().map{ it.join(' ')}
-        bed_files = region_read_count.map{ it[2]}.collect().map{ it.join(' ')}
-
         results = report.concat(
             whatshap_result.map{ it[2]}.collect(),
             output_alignments.collect(),
@@ -487,12 +479,13 @@ workflow {
 
     start_ping()
 
+    //filter unclassified here
     samples = fastq_ingress([
         "input":params.fastq,
         "sample":params.sample,
         "sample_sheet":params.sample_sheet,
         "sanitize": params.sanitize_fastq,
-        "output":params.out_dir])
+        "output":params.out_dir]).filter { it[1].sample_id != "unclassified" }
 
       //get reference
     if (params.reference == null){

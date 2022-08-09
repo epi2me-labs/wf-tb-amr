@@ -483,17 +483,20 @@ def section_executive_summary(args, report_doc, samples, canned_text):
 
         section._add_item(f"""
             <div class="alert alert-{background} mt-3" role="alert">
-                {symbol} <strong><a href="#{sample}">{sample}</a>
-                <a href=\"{sample}_report.html\">
-                   <i class="fa fa-clipboard"></i>
-               </a>
-                <a href=\"{sample}_appendix.html\">
-                   <i class="fa fa-microscope"></i>
-               </a>
-                </strong>
-                <span class="float-right badge badge-white">
-                    {result[sample]['resistance']['resistance_level']}
-                </span>
+
+                            {symbol} <strong><a href="#{sample}">{sample}</a>
+                            <a href=\"{sample}_report.html\">
+                               <i class="fa fa-clipboard"></i>
+                           </a>
+                            <a href=\"{sample}_appendix.html\">
+                               <i class="fa fa-microscope"></i>
+                           </a>
+                            </strong>
+
+                        <span class="float-right badge badge-white">
+                            {result[sample]['resistance']['resistance_level']}
+                        </span>
+
                 <div class="progress">
                     <div
                         class="progress-bar
@@ -505,6 +508,13 @@ def section_executive_summary(args, report_doc, samples, canned_text):
                         aria-valuemin="0"
                         aria-valuemax="{total_amplicons}">
                         {covered_amplicons}/{total_amplicons} Covered
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <small class="float-right">
+                            {samples[sample]['barcode']}
+                        </small>
                     </div>
                 </div>
         </div>""")
@@ -789,7 +799,8 @@ def variants_evidence(
             <h5 class="card-header d-flex justify-content-between
                 align-items-center alert-{background}">
                 <span>
-                    <i class="fa fa-vial"></i> {samplekey}
+                    <i class="fa fa-vial"></i>
+                    {samplekey} ({samples[samplekey]['barcode']})
                 </span>
                 <span class="badge badge-white">
                     {samples[samplekey]['type']}
@@ -885,14 +896,16 @@ def target_info(target_name, targets, reads, tile_size, ref_tiles):
 
 def process_samples_inputs(args):
     """Process inputs and make some decisions on QC."""
-    sample_coveage = {
-        sample: {
-            'type': type,
-            'readcount': f"{args.readcounts}/{sample}.bedtools-coverage.bed"
-        } for sample, type in zip(
-            args.samples, args.types
-        )
-    }
+    bed_ext = "bedtools-coverage.bed"
+
+    with open(args.metadata) as metadata:
+        sample_coveage = {
+            d['sample_id']: {
+                'type': d['type'],
+                'barcode': d['barcode'],
+                'readcount': f"{args.readcounts}/{d['sample_id']}.{bed_ext}"
+            } for d in json.load(metadata)
+        }
 
     controls = dict(
         test_sample=dict(threshold=args.sample_threshold),
@@ -959,11 +972,8 @@ def main():
         "--readcounts", default='bed_files',
         help="bedtools coverage for amplicon")
     parser.add_argument(
-        "--samples", nargs='+', default='unknown',
-        help="git commit number")
-    parser.add_argument(
-        "--types", nargs='+', default='unknown',
-        help="git commit number")
+        "--metadata", default='metadata.json',
+        help="sample metadata")
     parser.add_argument(
         "--ntc_threshold", default='20,3',
         help="comma separated string of x,y - where x is \
