@@ -549,20 +549,20 @@ workflow {
     pipeline(samples, file(params._reference), file(params._amplicons_bed), file(params._variant_db), file(params._genbank), file(vcf_template), file(bcf_annotate_template), file(params._report_config))
 
     output(pipeline.out.results)
+}
 
-    if (params.disable_ping == false) {
-        workflow.onComplete {
-            try{
-                Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
-            }catch(RuntimeException e1) {
-            }
+if (params.disable_ping == false) {
+    workflow.onComplete {
+        try{
+            Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
+        }catch(RuntimeException e1) {
         }
+    }
 
-        workflow.onError {
-            try{
-                Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
-            }catch(RuntimeException e1) {
-            }
+    workflow.onError {
+        try{
+            Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
+        }catch(RuntimeException e1) {
         }
     }
 }
