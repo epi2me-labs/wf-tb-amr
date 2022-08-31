@@ -180,11 +180,18 @@ process whatshap {
     # index fasta
     samtools faidx ${reference}
 
-    # phase variants
-    whatshap phase \
-      -o ${sample_id}.phased.vcf \
-      --reference=${reference} \
-      ${sample_id}.mpileup.annotated.processed.PASS.vcf ${sample_id}.rg.bam
+    read_count=`samtools view -c ${sample_id}.rg.bam`
+
+    if [ "\${read_count}" -gt "0" ]; then
+
+      # phase variants
+      whatshap phase \
+        -o ${sample_id}.phased.vcf \
+        --reference=${reference} \
+        ${sample_id}.mpileup.annotated.processed.PASS.vcf ${sample_id}.rg.bam
+    else
+      cp ${vcf_template} ${sample_id}.phased.vcf
+    fi
 
     # add codon numbers to those variants which are noit in our db but we want to phase because they could affect the same codon
     vcf-annotator ${sample_id}.phased.vcf ${genbank} > ${sample_id}.phased.codon.vcf
