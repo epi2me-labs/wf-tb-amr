@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Fixed
 - No reads in NTC causing whatshap failure
+### Updated
+- Base image to v0.2.0
 
 ## [v1.0.8]
 ### Fixed

@@ -5,7 +5,6 @@ nextflow.enable.dsl = 2
 
 
 include { fastq_ingress } from './lib/fastqingress'
-include { start_ping; end_ping } from './lib/ping'
 
 
 process getVersions {
@@ -472,6 +471,13 @@ workflow pipeline {
 WorkflowMain.initialise(workflow, params, log)
 workflow {
 
+    if (params.disable_ping == false) {
+        try {
+            Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
+        } catch(RuntimeException e1) {
+        }
+    }
+
     if (params.help) {
         helpMessage()
         exit 1
@@ -483,8 +489,6 @@ workflow {
         println("`--fastq` is required")
         exit 1
     }
-
-    start_ping()
 
     //filter unclassified here
     samples = fastq_ingress([
@@ -546,5 +550,19 @@ workflow {
 
     output(pipeline.out.results)
 
-    end_ping(pipeline.out.telemetry)
+    if (params.disable_ping == false) {
+        workflow.onComplete {
+            try{
+                Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
+            }catch(RuntimeException e1) {
+            }
+        }
+
+        workflow.onError {
+            try{
+                Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
+            }catch(RuntimeException e1) {
+            }
+        }
+    }
 }
