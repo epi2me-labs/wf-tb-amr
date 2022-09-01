@@ -5,7 +5,6 @@ nextflow.enable.dsl = 2
 
 
 include { fastq_ingress } from './lib/fastqingress'
-include { start_ping; end_ping } from './lib/ping'
 
 
 process getVersions {
@@ -180,11 +179,18 @@ process whatshap {
     # index fasta
     samtools faidx ${reference}
 
-    # phase variants
-    whatshap phase \
-      -o ${sample_id}.phased.vcf \
-      --reference=${reference} \
-      ${sample_id}.mpileup.annotated.processed.PASS.vcf ${sample_id}.rg.bam
+    read_count=`samtools view -c ${sample_id}.rg.bam`
+
+    if [ "\${read_count}" -gt "0" ]; then
+
+      # phase variants
+      whatshap phase \
+        -o ${sample_id}.phased.vcf \
+        --reference=${reference} \
+        ${sample_id}.mpileup.annotated.processed.PASS.vcf ${sample_id}.rg.bam
+    else
+      cp ${vcf_template} ${sample_id}.phased.vcf
+    fi
 
     # add codon numbers to those variants which are noit in our db but we want to phase because they could affect the same codon
     vcf-annotator ${sample_id}.phased.vcf ${genbank} > ${sample_id}.phased.codon.vcf
@@ -465,6 +471,13 @@ workflow pipeline {
 WorkflowMain.initialise(workflow, params, log)
 workflow {
 
+    if (params.disable_ping == false) {
+        try {
+            Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
+        } catch(RuntimeException e1) {
+        }
+    }
+
     if (params.help) {
         helpMessage()
         exit 1
@@ -476,8 +489,6 @@ workflow {
         println("`--fastq` is required")
         exit 1
     }
-
-    start_ping()
 
     //filter unclassified here
     samples = fastq_ingress([
@@ -538,6 +549,20 @@ workflow {
     pipeline(samples, file(params._reference), file(params._amplicons_bed), file(params._variant_db), file(params._genbank), file(vcf_template), file(bcf_annotate_template), file(params._report_config))
 
     output(pipeline.out.results)
+}
 
-    end_ping(pipeline.out.telemetry)
+if (params.disable_ping == false) {
+    workflow.onComplete {
+        try{
+            Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
+        }catch(RuntimeException e1) {
+        }
+    }
+
+    workflow.onError {
+        try{
+            Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
+        }catch(RuntimeException e1) {
+        }
+    }
 }
