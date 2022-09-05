@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Fixed
 - No reads in NTC causing whatshap failure
+- Annotation issue for MNPs
+- Phasing issue where variant at pos 1 & 3 but not 2
 ### Updated
 - Base image to v0.2.0
 

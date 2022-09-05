@@ -133,17 +133,13 @@ process mpileup {
     bcftools norm -m- -Oz ${sample_id}.mpileup.vcf.gz.dedup -o ${sample_id}.mpileup.vcf.gz.norm
     tabix ${sample_id}.mpileup.vcf.gz.norm
 
-    # annotate pileup - if you don't use non-norm db then you lose annotations
-    bcftools annotate \
-      -c CHROM,POS,REF,GENE,STRAND,IGNORE_SB,AA,FEATURE_TYPE,EFFECT,GENE_LOCUS,WHO_POS,ANTIBIOTICS,PROTEIN_ID,HGVS_NUCLEOTIDE,HGVS_PROTEIN,CODON_NUMBER,ORIGIN \
-      -h ${bcf_annotate_template} \
-      -a ${variant_db} \
-      ${sample_id}.mpileup.vcf.gz.norm | bcftools filter -i 'INFO/ORIGIN="WHO_CANONICAL"' - > ${sample_id}.mpileup.annotated.vcf
+    bcftools view ${sample_id}.mpileup.vcf.gz.norm > ${sample_id}.mpileup.vcf.gz.norm.vcf
+
 
     # call variants from pileup
     process_mpileup.py \
       --template ${vcf_template} \
-      --mpileup ${sample_id}.mpileup.annotated.vcf \
+      --mpileup ${sample_id}.mpileup.vcf.gz.norm.vcf \
       --out_vcf ${sample_id}.mpileup.annotated.processed.vcf \
       --sample ${sample_id} \
       -a $params.maf \
@@ -199,7 +195,8 @@ process whatshap {
     process_whatshap.py \
       --phased_vcf ${sample_id}.phased.codon.vcf \
       --out_vcf ${sample_id}.phased.processed.vcf \
-      --template ${vcf_template}
+      --template ${vcf_template} \
+      --sample ${sample_id}
 
     # sort
     bcftools sort ${sample_id}.phased.processed.vcf > ${sample_id}.phased.processed.sorted.vcf
