@@ -726,7 +726,8 @@ def test_process_whatshap():
     template = "data/template.vcf"
     processed_vcf = tmp.name
 
-    process_whathap.process_whathap(phased_vcf, template, processed_vcf)
+    process_whathap.process_whathap(
+        'SAMPLE', phased_vcf, template, processed_vcf)
 
     vcf_truth = vcf.Reader(filename=truth_vcf)
 

@@ -2,6 +2,7 @@
 """Process whathap phasing info."""
 
 import argparse
+from collections import namedtuple, OrderedDict
 import logging
 
 import vcf
@@ -13,6 +14,9 @@ def load_cmdline_params():
         description='''Process WhatsHap phasing data''')
 
     parser.add_argument(
+        '-s', '--sample', required=True, dest="sample",
+        help="Sample identifier")
+    parser.add_argument(
         '-p', '--phased_vcf', required=True, dest="phased_vcf",
         help="whatshap phased VCF")
     parser.add_argument(
@@ -23,6 +27,15 @@ def load_cmdline_params():
         help="Processed VCF file")
 
     return parser
+
+
+def make_call(record, sample):
+    """Give our VCF a sample to make it compatible with downstream stuff."""
+    data = namedtuple("calldata", ["GT"])
+    sample = vcf.model._Call(record, sample, data('1/1'))
+    record.FORMAT = 'GT'
+    record.samples = [sample]
+    return record
 
 
 def is_variant_eligable(record):
@@ -49,7 +62,7 @@ def check_phase_status(record):
     return False
 
 
-def check_codon_status(phase_group, vcf_writer):
+def check_codon_status(sample, phase_group, vcf_writer):
     """
     Check the codon our phased variants is in.
 
@@ -71,7 +84,8 @@ def check_codon_status(phase_group, vcf_writer):
                     new_phase_groups[position] = dict()
                 new_phase_groups[position][codon] = codons[codon]
             else:
-                vcf_writer.write_record(codons[codon][0])
+                record = make_call(codons[codon][0], sample)
+                vcf_writer.write_record(record)
 
     return new_phase_groups
 
@@ -91,7 +105,7 @@ def unique(sequence):
     return [x for x in new_sequence if not (x in seen or seen.add(x))]
 
 
-def combine_phased_variants(phase_group, codon, variants):
+def combine_phased_variants(sample, phase_group, codon, variants):
     """
     Combine our phased variants.
 
@@ -109,6 +123,9 @@ def combine_phased_variants(phase_group, codon, variants):
     sorted_variants = sorted(variants, key=lambda x: x.POS, reverse=False)
     info_items = sorted_variants[0].INFO
     ref_codon = sorted_variants[0].INFO['RefCodon']
+
+    if type(ref_codon) == list:
+        ref_codon = ref_codon[0]
 
     # assign variants in phase group to a position in the codon
     for variant in sorted_variants:
@@ -140,6 +157,7 @@ def combine_phased_variants(phase_group, codon, variants):
         # if no variant present in the middle of the codon then we need to pad
         # the reference and the alt
         if variant is None and codon == 1:
+
             refs.append(ref_codon[codon])
             alts.append(ref_codon[codon])
 
@@ -195,18 +213,28 @@ def combine_phased_variants(phase_group, codon, variants):
         FILTER=['PASS'],
         INFO=final_infos,
         sample_indexes=None,
-        FORMAT=None
+        FORMAT='GT'
     )
 
+    phased_record = make_call(phased_record, sample)
     return [phased_record]
 
 
-def process_whathap(phased_vcf, template_file, out_vcf):
+def process_whathap(sample, phased_vcf, template_file, out_vcf):
     """Process whathap VCF."""
     vcf_reader = vcf.Reader(filename=phased_vcf)
     phase_groups = dict()
 
     template = vcf.Reader(filename=template_file)
+
+    # add required stuff to the universal template
+    format = """##FORMAT=<ID=GT,Number=1,Type=String,
+                        Description="Non-meaningful genotype">"""
+    template.formats = OrderedDict(
+        [vcf.parser._vcf_metadata_parser().read_format(format_string=format)]
+    )
+    template._column_headers.append('FORMAT')
+    template._column_headers.append(sample)
 
     vcf_writer = vcf.Writer(open(out_vcf, 'w'), template)
 
@@ -214,6 +242,7 @@ def process_whathap(phased_vcf, template_file, out_vcf):
 
         # check if a variant is coding or not - won't affect annottaion
         if is_variant_eligable(record) is False:
+            record = make_call(record, sample)
             vcf_writer.write_record(record)
             continue
 
@@ -221,6 +250,7 @@ def process_whathap(phased_vcf, template_file, out_vcf):
         phase_group = check_phase_status(record)
 
         if phase_group is False:
+            record = make_call(record, sample)
             vcf_writer.write_record(record)
             continue
 
@@ -232,16 +262,19 @@ def process_whathap(phased_vcf, template_file, out_vcf):
 
     # for our phased varinats check if they are in the same codon and make
     # new groups if they are
-    codon_aware_phase_groups = check_codon_status(phase_groups, vcf_writer)
+    codon_aware_phase_groups = check_codon_status(
+        sample, phase_groups, vcf_writer)
 
     # now process our codon aware phased variants
     for phase_group in codon_aware_phase_groups:
         for codon in codon_aware_phase_groups[phase_group]:
             phased_record = combine_phased_variants(
+                sample,
                 phase_group,
                 codon,
                 codon_aware_phase_groups[phase_group][codon])
             for variant in phased_record:
+                record = make_call(record, sample)
                 vcf_writer.write_record(variant)
 
     vcf_writer.close()
@@ -264,7 +297,7 @@ def main():
     )
 
     process_whathap(
-        args.phased_vcf, args.template, args.out_vcf)
+        args.sample, args.phased_vcf, args.template, args.out_vcf)
 
 
 if __name__ == "__main__":
