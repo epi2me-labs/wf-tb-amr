@@ -1,0 +1,77 @@
+##fileformat=VCFv4.2
+##origin=<ID=WHO_MTBC_MUTATION_CATALOGUE,Version="WHO-UCN-GTB-PCI-2021.7-eng",Description="Catalogue of mutations in Mycobacterium tuberculosis complex and their association with drug resistance: supplementary document https://apps.who.int/iris/handle/10665/341906",Licence="CC BY-NC-SA 3.0 IGO">
+##create_variant_db=<ID=reference,Value=data/primer_schemes//V2/NC_000962.3.fasta,md5=e51ec80710a07b144cc60affab8a208f>
+##create_variant_db=<ID=genbank,Value=data/primer_schemes//V2/NC_000962.3.gb,md5=c0bd6132631704e501e13404e1b2ffa2>
+##create_variant_db=<ID=who_variants,Value=/Users/Matt.Parker/Downloads/WHO-UCN-GTB-PCI-2021.7-eng.xlsx,md5=d195ef19ca95c898e6ae0f4fffff6dc5>
+##create_variant_db=<ID=who_sheet,Value=Genome_indices>
+##create_variant_db=<ID=vcf_template,Value=data/template.vcf,md5=fad6d4910d3521de7118fc8b8a979a96>
+##create_variant_db=<ID=bed_file,Value=data/primer_schemes//V2/TB_amplicons.bed,md5=5b6bb7416013fd5da88dc60db98fcc63>
+##create_variant_db=<ID=git,Value=dev>
+##create_variant_db=<ID=output_vcf_file,Value=data/primer_schemes//V2/variant_db.vcf,md5=cac0157502ebe23d952f36f5b824adc2>
+##INFO=<ID=INDEL,Number=0,Type=Flag,Description="Indicates that the variant is an INDEL.">
+##INFO=<ID=IGNORE_SB,Number=0,Type=Flag,Description="Indicates ignoring strand bias filter.">
+##INFO=<ID=AA,Number=1,Type=String,Description="Amino acid change">
+##INFO=<ID=CODON_NUMBER,Number=1,Type=String,Description="Amino acid position">
+##INFO=<ID=ANTIBIOTICS,Number=.,Type=String,Description="WHO antibiotic resistance rating: <ANTIBIOTIC>|<RATING>">
+##INFO=<ID=GENE,Number=1,Type=String,Description="Gene">
+##INFO=<ID=GENE_LOCUS,Number=1,Type=String,Description="Locus name of gene in NCBI genbank">
+##INFO=<ID=HGVS_NUCLEOTIDE,Number=1,Type=String,Description="HGVS annotation of the nucleotide change">
+##INFO=<ID=HGVS_PROTEIN,Number=1,Type=String,Description="HGVS annotation of the protein change">
+##INFO=<ID=PROTEIN_ID,Number=1,Type=String,Description="NCBI genbank protein ID">
+##INFO=<ID=EFFECT,Number=1,Type=String,Description="Effect on protein">
+##INFO=<ID=STRAND,Number=1,Type=String,Description="Strand of gene,1=+ve,-1=-ve">
+##INFO=<ID=FEATURE_TYPE,Number=1,Type=String,Description="Feature type as defined by NCBI i.e. CDS or rRNA">
+##INFO=<ID=ORIGIN,Number=1,Type=String,Description="Listed in 'WHO_CANONICAL' or 'WHO_NONCANONICAL'">
+##INFO=<ID=WHO_POS,Number=1,Type=String,Description="Variants, even if not coding are described sometimes by their 'codon' position, this makes it easy to see which variant is being considered">
+##INFO=<ID=IDV,Number=1,Type=Integer,Description="Maximum number of raw reads supporting an indel">
+##INFO=<ID=IMF,Number=1,Type=Float,Description="Maximum fraction of raw reads supporting an indel">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Raw read depth">
+##INFO=<ID=VDB,Number=1,Type=Float,Description="Variant Distance Bias for filtering splice-site artefacts in RNA-seq data (bigger is better)">
+##INFO=<ID=RPB,Number=1,Type=Float,Description="Mann-Whitney U test of Read Position Bias (bigger is better)">
+##INFO=<ID=MQB,Number=1,Type=Float,Description="Mann-Whitney U test of Mapping Quality Bias (bigger is better)">
+##INFO=<ID=BQB,Number=1,Type=Float,Description="Mann-Whitney U test of Base Quality Bias (bigger is better)">
+##INFO=<ID=MQSB,Number=1,Type=Float,Description="Mann-Whitney U test of Mapping Quality vs Strand Bias (bigger is better)">
+##INFO=<ID=RPBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Read Position Bias (closer to 0 is better)">
+##INFO=<ID=MQBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Mapping Quality Bias (closer to 0 is better)">
+##INFO=<ID=BQBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Base Quality Bias (closer to 0 is better)">
+##INFO=<ID=MQSBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Mapping Quality vs Strand Bias (closer to 0 is better)">
+##INFO=<ID=SCBZ,Number=1,Type=Float,Description="Mann-Whitney U-z test of Soft-Clip Length Bias (closer to 0 is better)">
+##INFO=<ID=FS_SB,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test to detect strand bias (closer to 0 is better)">
+##INFO=<ID=SGB,Number=1,Type=Float,Description="Segregation based metric.">
+##INFO=<ID=MQ0F,Number=1,Type=Float,Description="Fraction of MQ0 reads (smaller is better)">
+##INFO=<ID=I16,Number=16,Type=Float,Description="Auxiliary tag used for calling, see description of bcf_callret1_t in bam2bcf.h">
+##INFO=<ID=QS,Number=R,Type=Float,Description="Auxiliary tag used for calling">
+##INFO=<ID=AD,Number=R,Type=Integer,Description="Total allelic depths (high-quality bases)">
+##INFO=<ID=ADF,Number=R,Type=Integer,Description="Total allelic depths on the forward strand (high-quality bases)">
+##INFO=<ID=ADR,Number=R,Type=Integer,Description="Total allelic depths on the reverse strand (high-quality bases)">
+##INFO=<ID=AF,Number=1,Type=Float,Description="Alternative allele frequency">
+##INFO=<ID=REF_CODON,Number=1,Type=String,Description="Reference codon">
+##INFO=<ID=ALT_CODON,Number=1,Type=String,Description="Alt Codon">
+##INFO=<ID=RefCodon,Number=.,Type=String,Description="Reference codon">
+##INFO=<ID=AltCodon,Number=.,Type=String,Description="Alternate codon">
+##INFO=<ID=RefAminoAcid,Number=.,Type=String,Description="Reference amino acid">
+##INFO=<ID=AltAminoAcid,Number=.,Type=String,Description="Alternate amino acid">
+##INFO=<ID=CodonPosition,Number=1,Type=Integer,Description="Codon position in the gene">
+##INFO=<ID=SNPCodonPosition,Number=1,Type=Integer,Description="SNP position in the codon">
+##INFO=<ID=AminoAcidChange,Number=.,Type=String,Description="Amino acid change">
+##INFO=<ID=IsSynonymous,Number=1,Type=Integer,Description="0:nonsynonymous, 1:synonymous, 9:N/A or Unknown">
+##INFO=<ID=IsTransition,Number=1,Type=Integer,Description="0:transversion, 1:transition, 9:N/A or Unknown">
+##INFO=<ID=IsGenic,Number=1,Type=Integer,Description="0:intergenic, 1:genic">
+##INFO=<ID=IsPseudo,Number=1,Type=Integer,Description="0:not pseudo, 1:pseudo gene">
+##INFO=<ID=LocusTag,Number=.,Type=String,Description="Locus tag associated with gene">
+##INFO=<ID=Gene,Number=.,Type=String,Description="Name of gene">
+##INFO=<ID=Note,Number=.,Type=String,Description="Note associated with gene">
+##INFO=<ID=Inference,Number=.,Type=String,Description="Inference of feature.">
+##INFO=<ID=Product,Number=.,Type=String,Description="Description of gene">
+##INFO=<ID=ProteinID,Number=.,Type=String,Description="Protein ID of gene">
+##INFO=<ID=Comments,Number=.,Type=String,Description="Example: Negative strand: T->C">
+##INFO=<ID=VariantType,Number=.,Type=String,Description="Indel, SNP, Ambiguous_SNP">
+##INFO=<ID=FeatureType,Number=.,Type=String,Description="The feature type of variant.">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="List of Phred-scaled genotype likelihoods">
+##contig=<ID=NC_000962.3>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+NC_000962.3	779113	Rv0678_W42R	T	C	.	.	AA=.;CODON_NUMBER=42;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|8,LZD|7,CFZ|3,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=Rv0678;GENE_LOCUS=Rv0678;HGVS_NUCLEOTIDE=c.124T>C;HGVS_PROTEIN=p.Trp42Arg;PROTEIN_ID=NP_215192.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=CDS;ORIGIN=WHO_CANONICAL
+NC_000962.3	779281	Rv0678_N98D	A	G	.	.	AA=.;CODON_NUMBER=98;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|8,LZD|7,CFZ|3,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=Rv0678;GENE_LOCUS=Rv0678;HGVS_NUCLEOTIDE=c.292A>G;HGVS_PROTEIN=p.Asn98Asp;PROTEIN_ID=NP_215192.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=CDS;ORIGIN=WHO_CANONICAL
+NC_000962.3	779426	Rv0678_M146T	T	C	.	.	AA=.;CODON_NUMBER=146;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|8,LZD|7,CFZ|3,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=Rv0678;GENE_LOCUS=Rv0678;HGVS_NUCLEOTIDE=c.437T>C;HGVS_PROTEIN=p.Met146Thr;PROTEIN_ID=NP_215192.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=CDS;ORIGIN=WHO_CANONICAL
+NC_000962.3	779350	Rv0678_G121R	G	A	.	.	AA=.;CODON_NUMBER=121;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|8,LZD|7,CFZ|7,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=Rv0678;GENE_LOCUS=Rv0678;HGVS_NUCLEOTIDE=c.361G>A;HGVS_PROTEIN=p.Gly121Arg;PROTEIN_ID=NP_215192.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=CDS;ORIGIN=WHO_CANONICAL
+NC_000962.3	779096	Rv0678_A36V	C	T	.	.	AA=.;CODON_NUMBER=36;ANTIBIOTICS=RIF|7,INH|7,EMB|7,PZA|7,LEV|7,MXF|7,BDQ|8,LZD|7,CFZ|3,DLM|7,AMI|7,STM|7,ETH|7,KAN|7,CAP|7;GENE=Rv0678;GENE_LOCUS=Rv0678;HGVS_NUCLEOTIDE=c.107C>T;HGVS_PROTEIN=p.Ala36Val;PROTEIN_ID=NP_215192.1;EFFECT=missense_variant;STRAND=1;FEATURE_TYPE=CDS;ORIGIN=WHO_CANONICAL

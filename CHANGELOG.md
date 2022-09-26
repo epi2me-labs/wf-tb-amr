@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+### Changed
+- Report card more intelligent to drop-outs
+- Group 2 SNPs now included in reports
+- CSV is more straight forward to interpret
+- Single sample report uses results from previous reporting step
+- Appendix report removed
+- Group 3 variants no longer reported
+### Added
+- Added coverage details to CSV
+- Warning to single sample report in the case of target failure
+- ONT reviewed group 3 variants are now reported (moved to V3)
+
 ## [v1.0.9]
 ### Fixed
 - No reads in NTC causing whatshap failure

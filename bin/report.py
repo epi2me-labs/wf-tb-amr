@@ -8,17 +8,17 @@ import os
 import re
 
 from aplanat import bars, lines, report
-from aplanat.components import fastcat
 from aplanat.components import simple as scomponents
-import aplanat.graphics
-from aplanat.util import ond_colors, ont_colors
+from aplanat.util import Colors, ond_colors, ont_colors
 from bokeh.layouts import gridplot, layout
-from bokeh.models import ColumnDataSource, Legend, LinearColorMapper, Panel
+from bokeh.models import (
+    CategoricalColorMapper, ColumnDataSource, Legend)
 from bokeh.plotting import figure
 from bokeh.transform import transform
 from common_methods import (
-    call_resistance, determine_status,
-    process_coverage, process_resistance, variants_table_from_vcf)
+    process_sample_amr,
+    process_sample_coverage,
+    variants_table_from_vcf)
 import numpy as np
 import pandas as pd
 import pyranges as pr
@@ -233,29 +233,6 @@ def check_no_template(samples: list, threshold: str, section):
     return qc_stati
 
 
-def fastcat_report_tab(file_name, tab_name):
-    """Read fastcat dataframe and create a tab with qual and len plots."""
-    df = pd.read_csv(file_name, sep='\t')
-    depth = len(df.index)
-    min_length = df["read_length"].min()
-    max_length = df["read_length"].max()
-    lengthplot = fastcat.read_length_plot(
-        df,
-        min_len=min_length,
-        max_len=max_length)
-    qstatplot = fastcat.read_quality_plot(df)
-    exec_summary = aplanat.graphics.InfoGraphItems()
-    exec_summary.append(
-        'No. reads', str(depth), "bars", '')
-    exec_plot = aplanat.graphics.infographic(
-        exec_summary.values(), ncols=1)
-    tab = Panel(
-        child=layout(
-            [[exec_plot], [lengthplot], [qstatplot]], aspect_ratio="auto",
-            sizing_mode='stretch_width'), title=tab_name)
-    return tab
-
-
 def read_files(summaries, sep='\t'):
     """Read a set of files and join to single dataframe."""
     dfs = list()
@@ -306,70 +283,95 @@ def section_reads_per_barcode(args, report_doc):
     section._add_item("""</div></div>""")
 
 
-def csv_output(samples, canned_text, csv):
+def csv_output(amr, coverage, canned_text, csv):
     """Make a csv results file."""
     output = [",".join([
         "sample",
         "type",
         "status",
         "call",
-        "grp1_resistance",
-        "grp1_hgvs_nucleotide",
-        "grp1_hgvs_protein",
-        "grp2_resistance",
-        "grp2_hgvs_nucleotide",
-        "grp2_hgvs_protein",
-        "grp3_resistance",
-        "grp3_hgvs_nucleotide",
-        "grp3_hgvs_protein"])]
+        "no_resistance_detected",
+        "undetermined",
+        "resistant",
+        "hgvs_nucleotide",
+        "hgvs_protein",
+        "passed_targets",
+        "failed_targets"])]
 
-    for sample in samples:
-        # print(samples[sample])
-        sample_type = samples[sample]['type']
+    control_status = []
+    for sample, items in coverage.items():
+        if items['type'] in ['no_template_control', 'positive_control']:
+            if items['qc_status'] == "fail":
+                control_status.append("fail")
 
-        vcf_file = f"variants/{sample}.final.vcf"
+    for sample in amr:
+
+        if coverage[sample]['qc_status'] == "pass":
+            if 'fail' in control_status:
+                coverage[sample]['qc_status'] = "fail"
+
+        info = amr[sample]
+        if info['type'] != 'test_sample':
+            continue
+
+        sample_type = info['type']
 
         line = [
             sample,
             sample_type,
-            samples[sample]['qc_status']]
+            coverage[sample]['qc_status']]
 
-        for i in [1, 2, 3]:
-            resistance = process_resistance(
-                vcf_file, canned_text['antibiotics'], i)
+        if coverage[sample]['qc_status'] != 'fail':
 
-            resistance = call_resistance(
-                resistance, canned_text['antibiotics'])
-
-            abs = ";".join(list(resistance['resistant'].keys()))
+            abs = ";".join(list(info['resistance']['resistant'].keys()))
 
             nucleotides = []
             proteins = []
 
-            for ab in list(resistance['resistant'].keys()):
+            for ab in list(info['resistance']['resistant'].keys()):
                 ab_nuc = []
                 ab_pro = []
-                for variant in resistance['resistant'][ab]['variants']:
-                    info = variant.INFO
+                for variant in info['resistance']['resistant'][ab]['variants']:
+                    var_info = variant['info']
                     ab_nuc.append(
-                        f"{info['GENE']}.{info['HGVS_NUCLEOTIDE']}")
+                        f"{var_info['GENE']}.{var_info['HGVS_NUCLEOTIDE']}")
                     ab_pro.append(
-                        f"{info['GENE']}.{info['HGVS_PROTEIN']}")
+                        f"{var_info['GENE']}.{var_info['HGVS_PROTEIN']}")
 
                 nucleotides.append(":".join(str(x) for x in ab_nuc))
                 proteins.append(":".join(str(x) for x in ab_pro))
-            if i == 1:
 
-                line = line + [
-                    resistance['resistance_level'],
-                    abs,
-                    ";".join(str(x) for x in nucleotides),
-                    ";".join(str(x) for x in proteins)]
-            else:
-                line = line + [
-                    abs,
-                    ";".join(str(x) for x in nucleotides),
-                    ";".join(str(x) for x in proteins)]
+            line = line + [
+                info['resistance']['resistance_level'],
+                ";".join([
+                    ab for ab in info[
+                        'antibiotics'] if info['antibiotics'][ab] == 0]),
+                ";".join([
+                    ab for ab in info[
+                        'antibiotics'] if info['antibiotics'][ab] == -1]),
+                abs,
+                ";".join(str(x) for x in nucleotides),
+                ";".join(str(x) for x in proteins)]
+
+        else:
+            line = line + ["\t" for i in range(0, 5)]
+
+        passed_amplicons = []
+
+        for amplicon in coverage[sample]["passed_amplicons"]:
+            median = coverage[sample]['passed_amplicons'][amplicon]['median']
+            passed_amplicons.append(
+                f"""{amplicon}:{median}""")
+
+        line.append(";".join(passed_amplicons))
+
+        fail_amplicons = []
+
+        for amplicon, fail_info in coverage[sample]["fail_amplicons"].items():
+            median = fail_info['median']
+            fail_amplicons.append(f"""{amplicon}:{median}""")
+
+        line.append(";".join(fail_amplicons))
 
         output.append(",".join(line))
 
@@ -378,41 +380,11 @@ def csv_output(samples, canned_text, csv):
     f.close()
 
 
-def section_executive_summary(args, report_doc, samples, canned_text):
+def section_executive_summary(args, report_doc, coverage, amr, canned_text):
     """Return the results summary."""
-    result = dict()
-
-    for sample in samples:
-        sample_type = samples[sample]['type']
-        if sample_type in ['no_template_control', 'positive_control']:
-            continue
-
-        vcf_file = f"variants/{sample}.final.vcf"
-
-        resistance = process_resistance(
-            vcf_file, canned_text['antibiotics'], 1)
-
-        resistance = call_resistance(
-            resistance, canned_text['antibiotics'])
-
-        result[sample] = dict()
-        result[sample]['resistance'] = resistance
-
-        all_antibiotics = (
-            [antibiotic for antibiotic in resistance['resistant']] +
-            [antibiotic for antibiotic in resistance['susceptible']])
-
-        result[sample]['antibiotics'] = dict()
-
-        for antibiotic_name in all_antibiotics:
-            result[sample]['antibiotics'][antibiotic_name] = 0
-
-        for antibiotic in resistance['resistant']:
-            result[sample]['antibiotics'][antibiotic] = 1
-
     data = pd.DataFrame([
-                {'Sample': sample, **result[sample]['antibiotics']}
-                for sample in result])
+                {'Sample': sample, **amr[sample]['antibiotics']}
+                for sample in amr if amr[sample]['type'] == 'test_sample'])
 
     data.set_index("Sample", inplace=True)
     data = data.replace({np.nan: 0})
@@ -445,8 +417,8 @@ def section_executive_summary(args, report_doc, samples, canned_text):
 
     # do some calculations to get total samples so we can divide into columns
     test_samples = [
-        sample for sample in samples
-        if samples[sample]['type'] == 'test_sample']
+        sample for sample in amr
+        if amr[sample]['type'] == 'test_sample']
 
     total_test_samples = len(test_samples)
 
@@ -455,14 +427,19 @@ def section_executive_summary(args, report_doc, samples, canned_text):
     # keep count to know when to move on to next column
     count = 0
 
-    for sample in samples:
+    for sample, info in coverage.items():
 
-        if samples[sample]['type'] != 'test_sample':
+        if info['type'] != 'test_sample':
             continue
 
-        qc_status = samples[sample]['qc_status']
-        total_amplicons = samples[sample]['total_amplicons']
-        fail_amplicons = len(samples[sample]['fail_amplicons'])
+        qc_status = info['qc_status']
+
+        # prevent failed samples from being plotted
+        if qc_status == 'fail':
+            data = data[data.index != sample]
+
+        total_amplicons = info['total_amplicons']
+        fail_amplicons = len(info['fail_amplicons'])
         covered_amplicons = total_amplicons-fail_amplicons
         percent_covered = (covered_amplicons / total_amplicons) * 100
 
@@ -494,7 +471,7 @@ def section_executive_summary(args, report_doc, samples, canned_text):
                             </strong>
 
                         <span class="float-right badge badge-white">
-                            {result[sample]['resistance']['resistance_level']}
+                            {amr[sample]['resistance']['resistance_level']}
                         </span>
 
                 <div class="progress">
@@ -513,7 +490,7 @@ def section_executive_summary(args, report_doc, samples, canned_text):
                 <div class="row">
                     <div class="col-md-12">
                         <small class="float-right">
-                            {samples[sample]['barcode']}
+                            {info['barcode']}
                         </small>
                     </div>
                 </div>
@@ -542,18 +519,28 @@ def section_executive_summary(args, report_doc, samples, canned_text):
     data.columns.name = 'amr'
     data = data.stack().rename("value").reset_index()
 
-    for sample in samples:
-        data.loc[data.samples == sample, 'text'] = (
-            len(samples[sample]['passed_amplicons']))
+    calls = {
+        0: 's',  # susceptible
+        -1: 'u',  # undertermined
+        1: 'r1',  # resistance grp1
+        2: 'r2',  # resistance grp2
+        8: 'ont'}   # resistance ONT
 
-    # TODO remove hardcoded 16 here for the total number of amplicons
-    data.loc[((data.text != 16) & (data.value != 1)), 'value'] = 0.5
+    data["call"] = data['value'].map(calls)
 
-    mapper = LinearColorMapper(
-        palette=(colors.BRAND_LIGHT_GREY, '#ffffff', colors.BRAND_BLUE),
-        low=0,
-        high=1
-    )
+    mapper = CategoricalColorMapper(
+        palette=[
+            colors.BRAND_LIGHT_GREY,
+            '#ffffff',
+            colors.BRAND_BLUE,
+            aplanat_colors.sandstorm,
+            aplanat_colors.fandango],
+        factors=[
+            's',
+            'u',
+            'r1',
+            'r2',
+            'ont'])
 
     p = figure(
         tools=tools,
@@ -574,7 +561,7 @@ def section_executive_summary(args, report_doc, samples, canned_text):
         height=0.9,
         source=ColumnDataSource(data),
         line_color="#333333",
-        fill_color=transform('value', mapper)
+        fill_color=transform('call', mapper)
     )
 
     p.xaxis.major_label_text_font_size = "11pt"
@@ -597,18 +584,31 @@ def section_executive_summary(args, report_doc, samples, canned_text):
     section._add_item('<div align="center"><p>')
     section.plot(p)
     section._add_item('</p></div>')
-    section._add_item("""
-         This section summarises the antibiotic resistance assignment per
-         sample. For further information on the justiciation and confidence
-         of these antibiotic assignments, please review following sections
-         in the report.
+    section._add_item(f"""
+         {canned_text['misc_language']['card_blurb']}
          <br><br>
          Interpretation:
             <ul>
             <li>
                 <h5 style="display: inline;">
                     <span class="badge badge-brand-primary">
-                        Resistant
+                        Resistant (Group 1)
+                    </span>
+                </h5>
+            </li>
+            <li>
+                <h5 style="display: inline;">
+                    <span class="badge"
+                            style="background-color: #F5CC49; color: #ffffff;">
+                        Resistant (Group 2)
+                    </span>
+                </h5>
+            </li>
+            <li>
+                <h5 style="display: inline;">
+                    <span class="badge"
+                            style="background-color: #A53F96;color: #ffffff;">
+                        Resistant (ONT)
                     </span>
                 </h5>
             </li>
@@ -633,78 +633,6 @@ def section_executive_summary(args, report_doc, samples, canned_text):
     </div>
     </div>
      """)
-
-
-def antibiotics_evidence(args, report_doc):
-    """Retrun evidence for antibiotoci resistance."""
-    json_files = args.genotype_json
-    for json_file in json_files:
-        with open(json_file) as json_fh:
-            variant_data = json.load(json_fh)
-            key = re.sub('.variants.json', '', os.path.basename(json_file))
-
-            section = report_doc.add_section()
-            section.markdown(f"###Sample: {key}")
-
-            results = []
-            for gene in variant_data:
-                for antibiotic in gene['antibiotic_resistance']:
-                    evidence = {}
-                    evidence["gene"] = gene["gene"]
-                    evidence["antibiotic"] = antibiotic["antibiotic"]
-                    evidence["mutations"] = ""
-                    for mutation in antibiotic['variants']:
-                        if len(evidence["mutations"]) > 0:
-                            evidence["mutations"] += ", "
-                        evidence["mutations"] += mutation["variant"]
-                        if "observed_allele" in mutation:
-                            evidence["mutations"] += f"""
-                             ({mutation['observed_allele']})"""
-                    results.append(evidence)
-            data = pd.DataFrame(results)
-            placeholder = report_doc.add_section(key=f"variantSummary{key}")
-            placeholder.table(
-                data, index=False, key=f"variantSummary{key}",
-                th_color=colors.BRAND_BLUE, paging=False, searchable=False)
-
-
-def genotyped_variant_summary(samplekey, variant_data, report_doc):
-    """Return genotyped variant summary."""
-    results = {}
-    for gene in variant_data:
-        for antibiotic in gene['antibiotic_resistance']:
-            for mutation in antibiotic['variants']:
-                key = f'{gene["gene"]}.{mutation["variant"]}'
-                if key not in results.keys():
-                    triplet = mutation['triplet']
-                    mutation_seq = f"{mutation['reftrip']} >" \
-                        f"{triplet}" if "reftrip" in mutation else ""
-                    results[key] = {
-                        "gene": gene["gene"],
-                        "position": mutation["position0"],
-                        "variant": mutation["variant"],
-                        "seqchange": mutation_seq,
-                        "antibiotic": antibiotic["antibiotic"],
-                        "total reads": mutation["depth"],
-                        "mutant reads": mutation["support"],
-                        "wild-type reads": mutation["refcount"],
-                        "strand bias": mutation["fwdBias"]}
-                    if ("observed_allele" in mutation and
-                            mutation["observed_allele"]
-                            != mutation["variant"]):
-                        results[key]["variant"] += f"""
-                         ({mutation['observed_allele']})
-                         """
-                else:
-                    results[key]["antibiotic"] += f', ' \
-                        f'{antibiotic["antibiotic"]}'
-    data = pd.DataFrame(list(results.values()))
-    if not data.empty:
-        data.sort_values(by=['position'], inplace=True)
-    placeholder = report_doc.add_section(key=f"variantSummary{samplekey}")
-    placeholder.table(
-        data, index=False, key=f"variantSummary{samplekey}",
-        th_color=colors.BRAND_BLUE, paging=False, searchable=False)
 
 
 def target_coverage_plot_panel(
@@ -753,8 +681,10 @@ def target_coverage_plot_panel(
 
 
 def variants_evidence(
-        args, report_doc, samples, show_mapping_statistics=False):
+        args, report_doc, samples, canned_text, show_mapping_statistics=False):
     """Return variants evidence."""
+    variant_canned_text = canned_text['sections']['variants']
+    coverage_canned_text = canned_text['sections']['coverage']
     section = report_doc.add_section()
     section._add_item("""
         <div class="card bg-light mt-3 mb-3">
@@ -764,12 +694,10 @@ def variants_evidence(
     <div class="card-body">
         The tabular information below shows a summary of
          the genetic variants observed within the sample.
-         Data included in the table includes genomic coordinates
-         and information on the depth of the sequence data(post-downsampling)
-         and the number of reads that support the presence of the variant.
-         Other supporting data includes the method used for the variant
-         identification, `vcall`, and `fbias` that shows the fraction of
-         reads that are found on the forward strand.
+         Data included in the table includes genomic coordinates, HGVS protein
+         and nucleotide, the drug resistance the variant confers,
+         the allele frequency of the variant (AF) and the phred scaled
+         fishers exact p value of strand bias (FS_SB).
     """)
     vcf_files = args.genotype_json
 
@@ -807,14 +735,19 @@ def variants_evidence(
                 </span>
             </h5>
             <div class="card-body">
-                <h5>Variants Summary</h5>
         """)
 
-        table = variants_table_from_vcf(vcf_file, info_fields, 1)
         placeholder = report_doc.add_section(key=f"variantSummary{samplekey}")
-        placeholder.table(
-            table, index=False, key=f"variantSummary{samplekey}",
-            th_color=colors.BRAND_BLUE, paging=False, searchable=False)
+
+        if qc_status == 'pass':
+            section._add_item(
+                f"""
+                <h5>{variant_canned_text['title']}</h5>
+                {variant_canned_text['blurb']}""")
+            table = variants_table_from_vcf(vcf_file, info_fields, [1, 2, 8])
+            placeholder.table(
+                table, index=False, key=f"variantSummary{samplekey}",
+                th_color=colors.BRAND_BLUE, paging=False, searchable=False)
 
         # recover the appropriate bed file
         bed_data = pd.read_csv(args.bed, sep="\t", header=None)
@@ -848,8 +781,8 @@ def variants_evidence(
 
         section._add_item(
             f"""
-            <h5>Target Coverage by Strand</h5>
-            Note that the position co-ordinate is discretized by
+            <h5>{coverage_canned_text['title']}</h5>
+            {coverage_canned_text['blurb']}
             {tile_size} bases.
             """)
 
@@ -862,78 +795,33 @@ def variants_evidence(
     section._add_item("</div></div>")
 
 
-def target_info(target_name, targets, reads, tile_size, ref_tiles):
-    """Return info for each target."""
-    print('Getting statistics for {}.'.format(target_name))
+def assay_details(args, report_doc, canned_text):
+    """Provide some assay details."""
+    section = report_doc.add_section()
+    section._add_item("""
+    <div class="card bg-light">
+        <h4 class="card-header">
+            <i class="fa-solid fa-asterisk"></i> Assay Details
+        </h4>
+        <div class="card-body">""")
 
-    t_reads = pr.PyRanges(reads.df[reads.df["readgroup"] == target_name])
-    hits = ref_tiles.count_overlaps(t_reads, strandedness='same')
+    data = {key: list() for key in canned_text['antibiotics']['RIF'].keys()}
 
-    info = targets[targets.tname == target_name].df
-    # Find intersecting hits
-    t_hits = hits.intersect(pr.PyRanges(info)).df
-    # t_reads = rg_reads.df[rg_reads.df['readgroup'] == target_name]
+    data['short-name'] = list()
+    for ab in canned_text['antibiotics']:
+        data['short-name'].append(ab)
+        for key, value in canned_text['antibiotics'][ab].items():
+            if value == '':
+                value = None
+            data[key].append(value)
 
-    info['tsize'] = info.End - info.Start
-    # use the tiles to calculate bases on target as parts of reads
-    # may not overlap
-    info['kbases'] = tile_size * t_hits['NumberOverlaps'].sum() / 1000
-    info['median_coverage'] = t_hits.groupby(
-        'Start')['NumberOverlaps'].sum().median().astype(int)
-    if len(t_reads) > 0:
-        info['nreads'] = t_reads.df['name'].unique().size
-        info['mean_read_length'] = t_reads.df['read_length'].mean()
-        info['mean_accuracy'] = t_reads.df['acc'].mean()
-        fwd, rev = (len(t_reads[t_reads.df['Strand'] == x]) for x in '+-')
-        info['strand_bias'] = (fwd - rev) / (fwd + rev)
-    else:
-        info['nreads'] = 0
-        info['mean_read_length'] = np.nan
-        info['mean_accuracy'] = np.nan
-        info['strand_bias'] = 0
-    return info
+    data['genes'] = [','.join(lst) for lst in data['genes']]
 
+    section.table(
+        pd.DataFrame(data),
+        th_color=colors.BRAND_BLUE, paging=False, searchable=False)
 
-def process_samples_inputs(args):
-    """Process inputs and make some decisions on QC."""
-    bed_ext = "bedtools-coverage.bed"
-
-    with open(args.metadata) as metadata:
-        sample_coveage = {
-            d['sample_id']: {
-                'type': d['type'],
-                'barcode': d['barcode'],
-                'readcount': f"{args.readcounts}/{d['sample_id']}.{bed_ext}"
-            } for d in json.load(metadata)
-        }
-
-    controls = dict(
-        test_sample=dict(threshold=args.sample_threshold),
-        no_template_control=dict(threshold=args.ntc_threshold),
-        positive_control=dict(threshold=args.positive_threshold))
-
-    for sample in sample_coveage:
-
-        sample_type = sample_coveage[sample]['type']
-
-        coverage = process_coverage(
-            sample_coveage[sample]['readcount'],
-            controls[sample_type]['threshold'])
-
-        result = determine_status(
-            coverage,
-            controls[sample_type]['threshold'])
-
-        sample_coveage[sample]['total_covered'] = len(
-            result['passed_targets'])
-
-        sample_coveage[sample]['qc_status'] = result['status']
-        sample_coveage[sample]['fail_amplicons'] = result['failed_targets']
-        sample_coveage[sample]['passed_amplicons'] = result['passed_targets']
-        sample_coveage[sample]['total_amplicons'] = (
-            len(result['passed_targets'])+len(result['failed_targets']))
-
-    return sample_coveage
+    section._add_item("</div></div>")
 
 
 def main():
@@ -1002,11 +890,14 @@ def main():
     args = parser.parse_args()
 
     global colors
+    global aplanat_colors
 
     if args.style == 'ond':
         colors = ond_colors
     elif args.style == 'ont':
         colors = ont_colors
+
+    aplanat_colors = Colors
 
     with open(args.canned_text) as json_data:
         canned_text = json.load(json_data)
@@ -1026,21 +917,39 @@ def main():
             </p>
         </div>""")
 
-    sample_types_counts = process_samples_inputs(args)
+    coverage = process_sample_coverage(
+        args.metadata,
+        args.readcounts,
+        args.sample_threshold,
+        args.ntc_threshold,
+        args.positive_threshold,
+        args.bed,
+        canned_text)
 
     controls(
-        sample_types_counts, args.ntc_threshold,
+        coverage, args.ntc_threshold,
         args.positive_threshold, report_doc)
 
+    amr = process_sample_amr(
+        args.metadata,
+        coverage,
+        'variants',
+        canned_text)
+
     csv_file = 'wf-tb-amr-report.csv'
-    csv_output(sample_types_counts, canned_text, csv_file)
+    csv_output(amr, coverage, canned_text, csv_file)
 
     section_executive_summary(
-        args, report_doc, sample_types_counts, canned_text)
+        args, report_doc, coverage, amr, canned_text)
 
     section_reads_per_barcode(args, report_doc)
 
-    variants_evidence(args, report_doc, sample_types_counts)
+    variants_evidence(args, report_doc, coverage, canned_text)
+
+    # lets provide some assay details
+    with open(args.canned_text) as json_data:
+        canned_text = json.load(json_data)
+    assay_details(args, report_doc, canned_text)
 
     section = report_doc.add_section(
         section=scomponents.version_table(

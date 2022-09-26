@@ -9,9 +9,7 @@ import json
 
 from aplanat import report
 from aplanat.util import ond_colors, ont_colors
-from common_methods import (
-    call_resistance, comma_separator, determine_status,
-    process_coverage, process_resistance)
+from common_methods import comma_separator
 import qrcode
 
 
@@ -43,9 +41,11 @@ def make_result_qr_code(
         box_size=2,
         border=0)
 
-    res = '|'.join([antibiotic for antibiotic in resistance['resistant']])
+    res = '|'.join([
+        antibiotic for antibiotic, value in resistance[
+            'antibiotics'].items() if value in [1, 2, 8]])
 
-    level = resistance['resistance_level']
+    level = resistance['resistance']['resistance_level']
     qr_string = f"""{sample_id},{barcode},{level},RES;{res}"""
 
     qr.add_data(qr_string)
@@ -123,35 +123,36 @@ def make_assay_section(
 
 
 def make_controls_section(
-        report_doc: report, coverage_file: str, ntc_coverage_file: str,
-        pos_coverage_file: str, ntc_threshold: str, pos_threshold: str,
-        sample_threshold: str, data: dict):
+        sample: str,
+        report_doc: report,
+        coverage: dict,
+        canned_text: dict):
     """Assess coverage of controls and sample."""
+    canned_statements = canned_text['sections']['controls']
+
     tests = list()
+
     section = report_doc.add_section()
+
     section._add_item(f"""
-        {make_header(data["title"])}
+        {make_header(canned_statements["title"])}
         <div class="row">""")
 
     controls = dict(
-        sample=dict(threshold=sample_threshold, coverage_file=coverage_file),
-        ntc=dict(threshold=ntc_threshold, coverage_file=ntc_coverage_file),
-        pos=dict(threshold=pos_threshold, coverage_file=pos_coverage_file))
+        ntc=[
+            data['coverage'] for sample_id, data in coverage.items() if data[
+                'coverage']['type'] == "no_template_control"][0],
+        pos=[
+            data['coverage'] for sample_id, data in coverage.items() if data[
+                'coverage']['type'] == "positive_control"][0],
+        sample=[
+            data['coverage'] for sam_id, data in coverage.items() if data[
+                'coverage']['type'] == "test_sample" and sam_id == sample][0]
+    )
 
     for k, v in controls.items():
 
-        coverage = process_coverage(v['coverage_file'], v['threshold'])
-
-        result = determine_status(coverage, v['threshold'])
-
-        # failed_targets = [
-        #     f"""<span class="badge badge-danger">{target}
-        #             <span class="badge badge-light">
-        #                 {int(result['failed_targets'][target]['median'])}
-        #             </span>
-        #         </span>""" for target in result['failed_targets']]
-
-        if result['status'] == 'pass':
+        if v['qc_status'] == 'pass':
 
             section._add_item(f"""
                 <div class="col-4">
@@ -162,7 +163,7 @@ def make_controls_section(
 
             tests.append(True)
 
-        if result['status'] == 'fail':
+        if v['qc_status'] == 'fail':
 
             section._add_item(f"""
             <div class="col-4">
@@ -178,7 +179,7 @@ def make_controls_section(
     if False in tests:
         return False
 
-    return True
+    return controls
 
 
 def make_final_result_section(
@@ -187,10 +188,10 @@ def make_final_result_section(
     """Make a final result section, a text describing the result."""
     antibiotics_data = list()
 
-    for antibiotic in resistance['resistant']:
-        if len(resistance['resistant'][antibiotic]['variants']) == 0:
-            continue
+    resistance_resistant = resistance[
+        sample_id]['amr']['resistance']['resistant']
 
+    for antibiotic in resistance_resistant:
         antibiotics_data.append(
             antibiotics[antibiotic]['full-name'])
 
@@ -200,6 +201,15 @@ def make_final_result_section(
     section._add_item(f"""
         <div class="alert alert-brand-primary">{final_text}</div>""")
 
+    failed_abs = [
+        ab for ab, value in resistance[
+            sample_id]['amr']['antibiotics'].items() if value == -1]
+    if len(failed_abs) > 0:
+        abs = [antibiotics[ab]['full-name'] for ab in failed_abs]
+        final_text = f"""Targets failed for {comma_separator(abs)}"""
+        section._add_item(f"""
+            <div class="alert alert-brand-red">{final_text}</div>""")
+
 
 def make_lineage_section():
     """Make a lineage section - we don't do this yet."""
@@ -207,8 +217,8 @@ def make_lineage_section():
 
 
 def make_drug_section(
-        report_doc: report, data: dict, antibiotics: dict, resistance: dict,
-        sample_id: str, barcode: str):
+        report_doc: report, data: dict, antibiotics: dict, all: dict,
+        sample_id: str, barcode: str, coverage_result: dict):
     """Make the detailed drug/variant section."""
     section = report_doc.add_section()
 
@@ -216,7 +226,11 @@ def make_drug_section(
         f"""{make_header(data['sections']['drug_susceptibility']["title"])}""")
 
     make_final_result_section(
-        section, data['sections']['final'], antibiotics, resistance, sample_id)
+        section,
+        data['sections']['final'],
+        antibiotics,
+        all,
+        sample_id)
 
     section._add_item(f"""
         <div class="row">
@@ -227,7 +241,7 @@ def make_drug_section(
 
     for k, v in data['sections']['drug_susceptibility']['result'].items():
         checked = ''
-        if k == resistance["resistance_level"]:
+        if k == all[sample_id]['amr']['resistance']["resistance_level"]:
             checked = " checked"
             v = f"<strong>{v}</strong>"
 
@@ -238,7 +252,7 @@ def make_drug_section(
     section._add_item("""</div>""")
 
     qr_string, b64 = make_result_qr_code(
-        sample_id, barcode, section, resistance)
+        sample_id, barcode, section, all[sample_id]['amr'])
 
     section._add_item(
         f"""<div class="col-2">
@@ -246,8 +260,15 @@ def make_drug_section(
         </div></div>
         <div class="row">""")
 
-    color = dict(resistant="td-brand-primary", susceptible="td-brand-grey")
-    symbol = dict(resistant="&#x2731;", susceptible="")
+    color = dict(
+        resistant="td-brand-primary",
+        susceptible="td-brand-grey",
+        target_fail="td-brand-red")
+
+    symbol = dict(
+        resistant="&#x2731;",
+        susceptible="",
+        target_fail="")
 
     for line in ['first-line', 'second-line']:
         section._add_item(f"""<div class="col-6">
@@ -267,22 +288,32 @@ def make_drug_section(
                 </td>
         </tr>""")
 
-        for status in ['resistant', 'susceptible']:
+        resistance = all[sample_id]['amr']['resistance']['resistant']
+        status_codes = {
+            'resistant': [1, 2, 8],
+            'susceptible': [0],
+            'target_fail': [-1]}
+        for status, codes in status_codes.items():
             interpretation = data['misc_language'][status]
-            for antibiotic in resistance[status]:
-                if line != resistance[status][antibiotic]['line']:
+            abs = all[sample_id]['amr']['antibiotics']
+            for antibiotic, code in abs.items():
+                if code not in codes:
                     continue
+
+                if line != data["antibiotics"][antibiotic]['line']:
+                    continue
+
                 gene_targets = list()
-                if len(resistance[status][antibiotic]['variants']) != 0:
-                    for variant in resistance[status][antibiotic]['variants']:
-                        print(variant.INFO['HGVS_PROTEIN'])
+                if antibiotic in resistance:
+
+                    for variant in resistance[antibiotic]['variants']:
                         hgvs = (
-                            variant.INFO['HGVS_PROTEIN']
-                            if variant.INFO['HGVS_PROTEIN'] is not None
-                            else variant.INFO['HGVS_NUCLEOTIDE'])
+                            variant['info']['HGVS_PROTEIN']
+                            if variant['info']['HGVS_PROTEIN'] is not None
+                            else variant['info']['HGVS_NUCLEOTIDE'])
                         gene_targets.append(
-                            f"""{variant.INFO['GENE']} ({hgvs},
-                            {int(variant.INFO['AF']*100)}%)""")
+                            f"""{variant['info']['GENE']} ({hgvs},
+                            {int(variant['info']['AF']*100)}%)""")
 
                 section._add_item(f"""
                     <tr class=\"{color[status]}\">
@@ -349,14 +380,8 @@ def main():
         "--barcode",
         help="Barcode used for sample")
     parser.add_argument(
-        "--sample_coverage_file",
-        help="Barcode used for sample")
-    parser.add_argument(
-        "--ntc_coverage_file",
-        help="Barcode used for sample")
-    parser.add_argument(
-        "--pos_coverage_file",
-        help="Barcode used for sample")
+        "--jsons", nargs="+",
+        help="model for results")
     parser.add_argument(
         "--ntc_threshold",
         help="Threshold for ntc coverage")
@@ -409,30 +434,33 @@ def main():
             </p>
         </div>""")
 
-    resistance = process_resistance(
-        args.vcf_file, canned_text['antibiotics'], args.group)
+    jsons = list()
+    for json_file in args.jsons:
+        with open(json_file) as json_data:
+            data = json.load(json_data)
+            jsons.append(data)
 
-    resistance = call_resistance(resistance, canned_text['antibiotics'])
+    all = dict()
+    for data in jsons:
+        all = {**all, **data}
 
     make_sample_section(
         report_doc, canned_text['sections']['sample'],
-        args.sample_id, resistance, args.barcode)
+        args.sample_id, all[args.sample_id]['amr'], args.barcode)
 
     make_assay_section(
         report_doc, canned_text['sections']['assay'], args.barcode,
         args.revision, args.commit)
 
-    controls = make_controls_section(
-        report_doc, args.sample_coverage_file, args.ntc_coverage_file,
-        args.pos_coverage_file, args.ntc_threshold, args.pos_threshold,
-        args.sample_threshold, canned_text['sections']['controls'])
+    coverage_result = make_controls_section(
+        args.sample_id, report_doc, all, canned_text)
 
     # something has has failed coverage checks - make report and exit
-    if controls is True:
+    if coverage_result is not False:
 
         make_drug_section(
             report_doc, canned_text, canned_text['antibiotics'],
-            resistance, args.sample_id, args.barcode)
+            all, args.sample_id, args.barcode, coverage_result)
 
     make_authorisation_section(
         report_doc, canned_text['sections']['authorisation'])
@@ -445,7 +473,7 @@ def main():
         <span class="sticker" style="float: left;">RUO</span>
         <span class="sticker" style="float: left;">PROTOTYPE</span>
         <img style="float: right;" src="{colors.BRAND_LOGO}">
-</div>""")
+        </div>""")
 
     report_doc.write(f'{args.sample_id}_report.html')
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 """Methods common to reporting."""
+import copy
+import json
 
 import pandas as pd
 import vcf
@@ -26,7 +28,7 @@ def call_resistance(resistance: dict, antibiotics: dict) -> str:
     # least isoniazid and rifampicin, the cornerstone medicines for the
     # treatment of TB. Rifampicin-resistant disease on its own requires
     # similar clinical management as MDR-TB.
-
+    print(res)
     if 'RIF' in res:
         resistance['resistance_level'] = 'RR'
 
@@ -82,7 +84,7 @@ def call_resistance(resistance: dict, antibiotics: dict) -> str:
 
 
 def process_resistance(
-        vcf_file: dict, antibiotics: dict, set_score: int) -> dict:
+        vcf_file: dict, antibiotics: dict, set_scores: list) -> dict:
     """Calculate resistance level - None, MDR or XDR."""
     result = dict(
         resistance_level=None,
@@ -95,13 +97,22 @@ def process_resistance(
     for record in vcf_reader:
         for antibiotic_score in record.INFO['ANTIBIOTICS']:
             antibiotic, score = antibiotic_score.split('|')
-
-            if int(score) == set_score:
+            score = int(score)
+            if score in set_scores:
                 if antibiotic not in result['resistant']:
                     result['resistant'][antibiotic] = \
-                        antibiotics[antibiotic]
+                        copy.deepcopy(antibiotics[antibiotic])
+                    result['resistant'][antibiotic]['groups'] = list()
                     result['resistant'][antibiotic]['variants'] = list()
-                result['resistant'][antibiotic]['variants'].append(record)
+
+                if score not in result['resistant'][antibiotic]['groups']:
+                    result['resistant'][antibiotic]['groups'].append(score)
+
+                result['resistant'][antibiotic]['variants'].append(dict(
+                    pos=record.POS,
+                    ref=record.REF,
+                    alt=str(record.ALT[0]),
+                    info=dict(record.INFO)))
 
     for antibiotic in antibiotics:
         if antibiotic not in result['resistant']:
@@ -130,9 +141,29 @@ def thresh_func(coverage_thresh, x):
 
 
 def process_coverage(
-        coverage_file: str, threshold: str) -> dict:
+        coverage_file: str, threshold: str, bed: str) -> dict:
     """Process coverage data for a sample."""
-    coverage = pd.read_csv(coverage_file, sep='\t', header=None)
+    try:
+        coverage = pd.read_csv(coverage_file, sep='\t', header=None)
+    except FileNotFoundError:
+        # it is expected sometimes that a NTC may have no reads
+        # in this case we will create a summary with 0
+        amplicons = pd.read_csv(bed, sep='\t', header=None)
+        summary = dict()
+        for gene in amplicons[3]:
+            summary[gene] = dict(
+                mean=0,
+                median=0,
+                threshold=0,
+                lt_20x_bases=0,
+                ge_20x_bases=0,
+                ge_100x_bases=0,
+                lt_20x_percent=0,
+                ge_20x_percent=0,
+                ge_100x_percent=0
+            )
+        summary = pd.DataFrame.from_dict(summary, orient='index')
+        return summary
 
     column_names = ['ref', 'start', 'end', 'gene', 'position', 'coverage']
     coverage = coverage.set_axis(column_names, axis=1, inplace=False)
@@ -154,7 +185,10 @@ def process_coverage(
     return summary
 
 
-def determine_status(coverage_summary: pd.DataFrame, threshold: str) -> dict:
+def determine_status(
+        coverage_summary: pd.DataFrame,
+        threshold: str,
+        canned_text: dict) -> dict:
     """
     Determine amplicon coverage status.
 
@@ -197,11 +231,31 @@ def determine_status(coverage_summary: pd.DataFrame, threshold: str) -> dict:
     result['passed_targets'] = coverage_summary[
         coverage_summary['passed']].to_dict('index')
 
+    # process failed antibiotics?
+    genes = {
+        gene: []
+        for ab in canned_text['antibiotics']
+        for gene in canned_text['antibiotics'][ab]['genes']}
+
+    for ab in canned_text['antibiotics']:
+        for gene in canned_text['antibiotics'][ab]['genes']:
+            genes[gene].append(ab)
+
+    for failed_target in result['failed_targets']:
+        if failed_target in genes:
+            result['failed_targets'][failed_target]['antibiotics'] = genes[
+                failed_target]
+
+    for pass_target in result['passed_targets']:
+        if pass_target in genes:
+            result['passed_targets'][pass_target]['antibiotics'] = genes[
+                pass_target]
+
     return result
 
 
 def variants_table_from_vcf(
-        vcf_file: str, info_fields: list, confidence: int) -> pd.DataFrame:
+        vcf_file: str, info_fields: list, confidence: list) -> pd.DataFrame:
     """Give a VCF file return a pandas data frame."""
     vcf_reader = vcf.Reader(open(vcf_file, 'r'))
 
@@ -216,9 +270,7 @@ def variants_table_from_vcf(
         data[info_field] = list()
 
     for record in vcf_reader:
-        print(record)
         for alt in record.ALT:
-            print(alt)
             data['chromosome'].append(record.CHROM)
             data['position'].append(record.POS)
             data['reference'].append(record.REF)
@@ -229,8 +281,8 @@ def variants_table_from_vcf(
                     result = []
                     for antibiotic_str in field_data:
                         antibiotic, obs_confidence = antibiotic_str.split('|')
-                        if int(confidence) == int(obs_confidence):
-                            result.append(antibiotic)
+                        if int(obs_confidence) in confidence:
+                            result.append(f"{antibiotic} ({obs_confidence})")
                     field_data = ','.join(result)
 
                 data[info_field].append(field_data)
@@ -258,3 +310,127 @@ def convert_who_confidence(who_confidence: str) -> int:
         "Synonymous": 6
     }
     return confidence[who_confidence]
+
+
+def process_sample_coverage(
+        metadata,
+        readcounts,
+        sample_threshold,
+        ntc_threshold,
+        positive_threshold,
+        bed,
+        canned_text) -> dict:
+    """Process inputs and make some decisions on QC."""
+    bed_ext = "bedtools-coverage.bed"
+
+    with open(metadata) as metadata:
+        sample_coverage = {
+            d['sample_id']: {
+                'type': d['type'],
+                'barcode': d['barcode'],
+                'readcount': f"{readcounts}/{d['sample_id']}.{bed_ext}"
+            } for d in json.load(metadata)
+        }
+
+    controls = dict(
+        test_sample=dict(threshold=sample_threshold),
+        no_template_control=dict(threshold=ntc_threshold),
+        positive_control=dict(threshold=positive_threshold))
+
+    for sample in sample_coverage:
+
+        sample_type = sample_coverage[sample]['type']
+
+        coverage = process_coverage(
+            sample_coverage[sample]['readcount'],
+            controls[sample_type]['threshold'],
+            bed)
+
+        result = determine_status(
+            coverage,
+            controls[sample_type]['threshold'],
+            canned_text)
+
+        sample_coverage[sample]['total_covered'] = len(
+            result['passed_targets'])
+
+        sample_coverage[sample]['qc_status'] = result['status']
+        sample_coverage[sample]['fail_amplicons'] = result['failed_targets']
+        sample_coverage[sample]['passed_amplicons'] = result['passed_targets']
+        sample_coverage[sample]['total_amplicons'] = (
+            len(result['passed_targets'])+len(result['failed_targets']))
+
+    return sample_coverage
+
+
+def process_sample_amr(
+        metadata: str,
+        coverage: dict,
+        variant_dir: str,
+        canned_text: dict):
+    """For a set of samples process AMR."""
+    vcf_ext = 'final.vcf'
+
+    with open(metadata) as metadata:
+        sample_amr = {
+            d['sample_id']: {
+                'type': d['type'],
+                'barcode': d['barcode'],
+                'vcf': f"{variant_dir}/{d['sample_id']}.{vcf_ext}"
+            } for d in json.load(metadata)
+        }
+    metadata.close()
+
+    for sample in sample_amr:
+
+        info = sample_amr[sample].copy()
+
+        sample_type = info['type']
+
+        if sample_type in ['no_template_control', 'positive_control']:
+            with open(f"jsons/{sample}_data.json", 'w') as j:
+                j.write(
+                    json.dumps(
+                        {sample: {'coverage': coverage[sample]}}, indent=4))
+                continue
+
+        processed_resistance = process_resistance(
+            info['vcf'], canned_text['antibiotics'], [1, 2, 8])
+
+        resistance = call_resistance(
+            processed_resistance, canned_text['antibiotics'])
+
+        sample_amr[sample]['resistance'] = resistance
+
+        all_antibiotics = (
+            [antibiotic for antibiotic in resistance['resistant']] +
+            [antibiotic for antibiotic in resistance['susceptible']])
+
+        sample_amr[sample]['antibiotics'] = dict()
+
+        for antibiotic_name in all_antibiotics:
+            sample_amr[sample]['antibiotics'][antibiotic_name] = 0
+
+        for antibiotic in resistance['resistant']:
+            sample_amr[sample]['antibiotics'][antibiotic] = min(
+                resistance['resistant'][antibiotic]['groups'])
+
+        # set those with failed coverage to undetermined
+        failed_amplicons = coverage[sample]['fail_amplicons']
+        for amplicon in failed_amplicons:
+            if 'antibiotics' in failed_amplicons[amplicon]:
+                for ab in failed_amplicons[amplicon]['antibiotics']:
+                    # if resistance has been found in another amplicon
+                    # then do not set ab to undetermined
+                    if sample_amr[sample]['antibiotics'][ab] not in [1, 2, 8]:
+                        sample_amr[sample]['antibiotics'][ab] = -1
+
+        # write results to json for use in other downstream reporting steps
+        with open(f"jsons/{sample}_data.json", 'w') as j:
+            j.write(
+                json.dumps(
+                    {sample: {
+                        'amr': sample_amr[sample],
+                        'coverage': coverage[sample]}}, indent=4))
+
+    return sample_amr
