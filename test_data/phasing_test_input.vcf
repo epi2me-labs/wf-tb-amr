@@ -2,13 +2,18 @@
 ##INFO=<ID=CodonPosition,Number=1,Type=Integer,Description="Codon position in the gene">
 ##INFO=<ID=RefCodon,Number=1,Type=String,Description="Reference codon">
 ##INFO=<ID=SNPCodonPosition,Number=1,Type=Integer,Description="SNP position in the codon">
+##INFO=<ID=Comments,Number=.,Type=String,Description="Example: Negative strand: T->C">
 ##INFO=<ID=AF,Number=1,Type=Float,Description="Alternative allele frequency">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO  FORMAT  SAMPLE
-NC_000962.3  102 . A C . PASS  CodonPosition=1;RefCodon=ATA;SNPCodonPosition=2;AF=0.94 GT:PS 1|0:100
-NC_000962.3  100 . A C . PASS  CodonPosition=1;RefCodon=ATA;SNPCodonPosition=0;AF=0.91 GT:PS 1|0:100
-NC_000962.3  104 . G T . PASS  CodonPosition=2;RefCodon=GTG;SNPCodonPosition=1;AF=0.81 GT:PS 1|0:100
-NC_000962.3  105 . G T . PASS  CodonPosition=2;RefCodon=GTG;SNPCodonPosition=2;AF=0.88 GT:PS 1|0:100
-NC_000962.3  110 . C A . PASS  CodonPosition=4;RefCodon=CCA;SNPCodonPosition=0;AF=0.99 GT:PS 1|0:100
-NC_000962.3  120 . A T . PASS  CodonPosition=7;RefCodon=ATC;SNPCodonPosition=0;AF=0.91 GT:PS 1|0:120
-NC_000962.3  121 . T C . PASS  CodonPosition=7;RefCodon=ATC;SNPCodonPosition=1;AF=0.93 GT:PS 1|0:120
-NC_000962.3  122 . C A . PASS  CodonPosition=7;RefCodon=ATC;SNPCodonPosition=2;AF=0.94 GT:PS 1|0:120
+NC_000962.3 102 . A C . PASS  CodonPosition=1;RefCodon=ATA;SNPCodonPosition=2;AF=0.94;Comments=. GT:PS 1|0:100
+NC_000962.3 100 . A C . PASS  CodonPosition=1;RefCodon=ATA;SNPCodonPosition=0;AF=0.91;Comments=. GT:PS 1|0:100
+NC_000962.3 104 . G T . PASS  CodonPosition=2;RefCodon=GTG;SNPCodonPosition=1;AF=0.81;Comments=. GT:PS 1|0:100
+NC_000962.3 105 . G T . PASS  CodonPosition=2;RefCodon=GTG;SNPCodonPosition=2;AF=0.88;Comments=. GT:PS 1|0:100
+NC_000962.3 110 . C A . PASS  CodonPosition=4;RefCodon=CCA;SNPCodonPosition=0;AF=0.99;Comments=. GT:PS 1|0:100
+NC_000962.3 120 . A T . PASS  CodonPosition=7;RefCodon=ATC;SNPCodonPosition=0;AF=0.91;Comments=. GT:PS 1|0:120
+NC_000962.3 121 . T C . PASS  CodonPosition=7;RefCodon=ATC;SNPCodonPosition=1;AF=0.93;Comments=. GT:PS 1|0:120
+NC_000962.3 122 . C A . PASS  CodonPosition=7;RefCodon=ATC;SNPCodonPosition=2;AF=0.94;Comments=. GT:PS 1|0:120
+NC_000962.3 2155167 . G T . PASS  CodonPosition=315;RefCodon=AGC;SNPCodonPosition=2;AF=0.8;Comments=Negative:C->A GT:PS 1|0:2155167
+NC_000962.3 2155168 . C G . PASS  CodonPosition=315;RefCodon=AGC;SNPCodonPosition=1;AF=0.8;Comments=Negative:G->C GT:PS 1|0:2155167
+NC_000962.3 155167 . G T . PASS  CodonPosition=315;RefCodon=AGC;SNPCodonPosition=2;AF=0.8;Comments=Negative:C->A GT:PS 1|0:155167
+NC_000962.3 155169 . T G . PASS  CodonPosition=315;RefCodon=AGC;SNPCodonPosition=0;AF=0.8;Comments=Negative:A->C GT:PS 1|0:155167

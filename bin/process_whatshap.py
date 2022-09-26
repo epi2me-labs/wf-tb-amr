@@ -5,6 +5,7 @@ import argparse
 from collections import namedtuple, OrderedDict
 import logging
 
+from Bio.Seq import Seq
 import vcf
 
 
@@ -123,13 +124,29 @@ def combine_phased_variants(sample, phase_group, codon, variants):
     sorted_variants = sorted(variants, key=lambda x: x.POS, reverse=False)
     info_items = sorted_variants[0].INFO
     ref_codon = sorted_variants[0].INFO['RefCodon']
-
     if type(ref_codon) == list:
         ref_codon = ref_codon[0]
+    # if on negative strand need to reverse complement codon
+    codon_lookup = {0: 2, 1: 1, 2: 0}
+
+    try:
+        strand, mut = sorted_variants[0].INFO['Comments'][0].split(":")
+    except AttributeError:
+        strand = "Positive"
+
+    print(strand)
+
+    if strand == "Negative":
+        dna = Seq(ref_codon)
+        ref_codon = dna.reverse_complement()
 
     # assign variants in phase group to a position in the codon
     for variant in sorted_variants:
-        codon_positions[variant.INFO['SNPCodonPosition']] = variant
+        codon_position = variant.INFO['SNPCodonPosition']
+        if strand == "Negative":
+            # if on negative strand need to reverse codon positions
+            codon_position = codon_lookup[codon_position]
+        codon_positions[codon_position] = variant
 
     new_infos = dict()
 
