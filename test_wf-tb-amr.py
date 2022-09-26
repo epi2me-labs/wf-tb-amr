@@ -13,17 +13,17 @@ import vcf
 
 def test_process_resistance():
     """Test processing of variant data."""
-    with open("data/primer_schemes/V2/report_config.eng.json") as json_data:
+    with open("data/primer_schemes/V3/report_config.eng.json") as json_data:
         canned_text = json.load(json_data)
 
     antibiotics = canned_text['antibiotics']
     vcf_file = "test_data/sample.final.variants.sorted.vcf"
-    print(common_methods.process_resistance(vcf_file, antibiotics, 1))
+    print(common_methods.process_resistance(vcf_file, antibiotics, [1]))
 
 
 def test_call_resistance():
     """Test calling of resistance from variant data."""
-    with open("data/primer_schemes/V2/report_config.eng.json") as json_data:
+    with open("data/primer_schemes/V3/report_config.eng.json") as json_data:
         canned_text = json.load(json_data)
 
     antibiotics = canned_text['antibiotics']
@@ -220,11 +220,14 @@ def test_call_resistance():
 
 def test_determine_status_sample_pass():
     """Test determining the status of a sample passed experiment."""
+    with open("data/primer_schemes/V3/report_config.eng.json") as json_data:
+        canned_text = json.load(json_data)
     # sample: -20,2 - fail is less than 20x in more than 2 amplicons
     sample_threshold = "-20,2"
     coverage_summary = common_methods.process_coverage(
             coverage_file="test_data/sample_pass.bedtools-coverage.bed",
-            threshold=sample_threshold)
+            threshold=sample_threshold,
+            bed="test_data/amplicons.bed")
 
     result = {
         "status": "pass",
@@ -282,16 +285,19 @@ def test_determine_status_sample_pass():
            }
     }
     assert result == common_methods.determine_status(
-        coverage_summary, sample_threshold)
+        coverage_summary, sample_threshold, canned_text)
 
 
 def test_determine_status_sample_fail():
     """Test determining the status of a sample failed experiment."""
+    with open("data/primer_schemes/V3/report_config.eng.json") as json_data:
+        canned_text = json.load(json_data)
     # sample: -20,2 - fail is less than 20x in more than 2 amplicons
     sample_threshold = "-20,2"
     coverage_summary = common_methods.process_coverage(
             coverage_file="test_data/sample_fail.bedtools-coverage.bed",
-            threshold=sample_threshold)
+            threshold=sample_threshold,
+            bed="test_data/amplicons.bed")
 
     result = {
         "status": "fail",
@@ -349,16 +355,19 @@ def test_determine_status_sample_fail():
             }
         }
     assert result == common_methods.determine_status(
-        coverage_summary, sample_threshold)
+        coverage_summary, sample_threshold, canned_text)
 
 
 def test_determine_status_ntc_fail():
     """Test determining the status of a ntc failed experiment."""
+    with open("data/primer_schemes/V3/report_config.eng.json") as json_data:
+        canned_text = json.load(json_data)
     # ntc: 20,2 - fail is more than 20x in more than 2 amplicons
     ntc_threshold = "20,2"
     coverage_summary = common_methods.process_coverage(
             coverage_file="test_data/ntc_fail.bedtools-coverage.bed",
-            threshold=ntc_threshold)
+            threshold=ntc_threshold,
+            bed="test_data/amplicons.bed")
 
     result = {
         "status": "fail",
@@ -416,16 +425,19 @@ def test_determine_status_ntc_fail():
         }
     }
     assert result == common_methods.determine_status(
-        coverage_summary, ntc_threshold)
+        coverage_summary, ntc_threshold, canned_text)
 
 
 def test_determine_status_ntc_pass():
     """Test determining the status of a ntc failed experiment."""
+    with open("data/primer_schemes/V3/report_config.eng.json") as json_data:
+        canned_text = json.load(json_data)
     # ntc: 20,2 - fail is more than 20x in more than 2 amplicons
     ntc_threshold = "20,2"
     coverage_summary = common_methods.process_coverage(
             coverage_file="test_data/ntc_pass.bedtools-coverage.bed",
-            threshold=ntc_threshold)
+            threshold=ntc_threshold,
+            bed="test_data/amplicons.bed")
 
     result = result = {
         "status": "pass",
@@ -483,7 +495,78 @@ def test_determine_status_ntc_pass():
         }
     }
     assert result == common_methods.determine_status(
-        coverage_summary, ntc_threshold)
+        coverage_summary, ntc_threshold, canned_text)
+
+
+def test_determine_status_ntc_no_fastq():
+    """Test determining the status of a ntc no reads."""
+    with open("data/primer_schemes/V3/report_config.eng.json") as json_data:
+        canned_text = json.load(json_data)
+    # ntc: 20,2 - fail is more than 20x in more than 2 amplicons
+    ntc_threshold = "20,2"
+    coverage_summary = common_methods.process_coverage(
+            coverage_file="test_data/missing_file.bed",
+            threshold=ntc_threshold,
+            bed="test_data/amplicons.bed")
+
+    result = {
+        "status": "pass",
+        "failed_targets": {},
+        "passed_targets": {
+            "gene1": {
+                "mean": 0,
+                "median": 0,
+                "threshold": 0,
+                "lt_20x_bases": 0,
+                "ge_20x_bases": 0,
+                "ge_100x_bases": 0,
+                "lt_20x_percent": 0,
+                "ge_20x_percent": 0,
+                "ge_100x_percent": 0,
+                "passed": True
+            },
+            "gene2": {
+                "mean": 0,
+                "median": 0,
+                "threshold": 0,
+                "lt_20x_bases": 0,
+                "ge_20x_bases": 0,
+                "ge_100x_bases": 0,
+                "lt_20x_percent": 0,
+                "ge_20x_percent": 0,
+                "ge_100x_percent": 0,
+                "passed": True
+            },
+            "gene3": {
+                "mean": 0,
+                "median": 0,
+                "threshold": 0,
+                "lt_20x_bases": 0,
+                "ge_20x_bases": 0,
+                "ge_100x_bases": 0,
+                "lt_20x_percent": 0,
+                "ge_20x_percent": 0,
+                "ge_100x_percent": 0,
+                "passed": True
+            },
+            "gene4": {
+                "mean": 0,
+                "median": 0,
+                "threshold": 0,
+                "lt_20x_bases": 0,
+                "ge_20x_bases": 0,
+                "ge_100x_bases": 0,
+                "lt_20x_percent": 0,
+                "ge_20x_percent": 0,
+                "ge_100x_percent": 0,
+                "passed": True
+            }
+        }
+    }
+    print(common_methods.determine_status(
+        coverage_summary, ntc_threshold, canned_text))
+    assert result == common_methods.determine_status(
+        coverage_summary, ntc_threshold, canned_text)
 
 
 def test_load_bed_file():
@@ -529,7 +612,7 @@ def test_convert_who_confidence():
 def test_get_reference_codon_seq_positive():
     """Test getting reference codon from a gene on the positive strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     # gyrB_L375V
     locus_tag = 'Rv0005'
     codon_number = 375
@@ -541,7 +624,7 @@ def test_get_reference_codon_seq_positive():
 def test_get_reference_codon_seq_negative():
     """Test getting reference codon from a gene on the negative strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     # gyrB_L375V
     locus_tag = 'Rv3919c'
     codon_number = 192
@@ -557,7 +640,7 @@ def test_get_reference_codon_seq_negative():
 def test_make_mutant_codon_positive():
     """Test making a mutant codon from a gene on the positive strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     locus_tag = 'Rv0005'
     codon_number = 375
     reference_codon = create_variant_db.get_reference_codon_seq(
@@ -577,7 +660,7 @@ def test_make_mutant_codon_positive():
 def test_make_mutant_codon_positive_multiple():
     """Test making a mutant codon from a gene on the positive strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     locus_tag = 'Rv0005'
     codon_number = 375
     reference_codon = create_variant_db.get_reference_codon_seq(
@@ -598,7 +681,7 @@ def test_make_mutant_codon_positive_multiple():
 def test_make_mutant_codon_positive_multiple2():
     """Test making a mutant codon from a gene on the positive strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     locus_tag = 'Rv0005'
     codon_number = 375
     reference_codon = create_variant_db.get_reference_codon_seq(
@@ -619,7 +702,7 @@ def test_make_mutant_codon_positive_multiple2():
 def test_make_mutant_codon_negative():
     """Test making a mutant codon from a gene on the negative strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     locus_tag = 'Rv3919c'
     codon_number = 192
     reference_codon = create_variant_db.get_reference_codon_seq(
@@ -639,7 +722,7 @@ def test_make_mutant_codon_negative():
 def test_make_mutant_codon_negative_multiple():
     """Test making a mutant codon from a gene on the negative strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     locus_tag = 'Rv0676c'
     codon_number = 948
     reference_codon = create_variant_db.get_reference_codon_seq(
@@ -662,7 +745,7 @@ def test_make_mutant_codon_negative_multiple():
 def test_make_mutant_codon_negative_multiple2():
     """Test making a mutant codon from a gene on the negative strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     locus_tag = 'Rv3919c'
     codon_number = 192
     reference_codon = create_variant_db.get_reference_codon_seq(
@@ -683,7 +766,7 @@ def test_make_mutant_codon_negative_multiple2():
 def test_make_mutant_codon_ubiA():
     """Test making a mutant codon from a gene on the negative strand."""
     genbank = create_variant_db.process_genbank(
-        "data/primer_schemes/V2/NC_000962.3.gb")
+        "data/primer_schemes/V3/NC_000962.3.gb")
     locus_tag = 'Rv3806c'
     codon_number = 249
     reference_codon = create_variant_db.get_reference_codon_seq(
@@ -714,7 +797,7 @@ def test_variants_table_from_vcf():
         'STRAND_BIAS']
 
     print(common_methods.variants_table_from_vcf(
-        "test_data/sample.final.variants.sorted.vcf", info_fields, 1))
+        "test_data/sample.final.variants.sorted.vcf", info_fields, [1]))
 
 
 def test_process_whatshap():

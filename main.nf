@@ -248,11 +248,16 @@ process report {
         path amplicons_bed
         path report_config
     output:
-        tuple path("wf-tb-amr-report.html"), path("wf-tb-amr-report.csv")
+        tuple path("wf-tb-amr-report.html"), path("wf-tb-amr-report.csv"), emit: run_report
+        path("jsons/*"), emit: jsons
     script:
     def metadata = new JsonBuilder(metadata).toPrettyString()
+
+    myDir = file("jsons")
+    myDir.mkdirs()
     """
     echo '${metadata}' > metadata.json
+    mkdir jsons
     report.py \
         --revision $workflow.revision \
         --commit $workflow.commitId \
@@ -278,23 +283,19 @@ process reportSingle {
     label "microbial"
     cpus 1
     input:
-      tuple val(sample_id), val(barcode), path(fastq), val(sample_type), val(sample_type), path(variants), val(sample_type), path(coverage)
-      path ntc_coverage
-      path pos_coverage
+      tuple val(samples)
+      path "jsons/*"
       path report_config
     output:
-      path "${sample_id}_report.html"
+      path "${samples.sample_id}_report.html"
     """
     report_single_sample.py \
       --revision $workflow.revision \
       --commit $workflow.commitId \
       --canned_text ${report_config} \
-      --vcf ${variants} \
-      --sample_id ${sample_id} \
-      --barcode ${barcode} \
-      --pos_coverage_file ${pos_coverage} \
-      --ntc_coverage_file ${ntc_coverage} \
-      --sample_coverage_file ${coverage} \
+      --sample_id ${samples.sample_id} \
+      --barcode ${samples.barcode} \
+      --jsons jsons/* \
       --ntc_threshold="${params.ntc_threshold}" \
       --pos_threshold="${params.positive_threshold}" \
       --sample_threshold="${params.sample_threshold}" \
@@ -302,37 +303,6 @@ process reportSingle {
       --style ont
     """
 }
-
-
-process reportAppendix {
-    label "microbial"
-    cpus 1
-    input:
-      tuple val(sample_id), val(barcode), path(fastq), val(sample_type), val(sample_type), path(variants), val(sample_type), path(coverage)
-      path ntc_coverage
-      path pos_coverage
-      path report_config
-    output:
-      path "${sample_id}_appendix.html"
-    """
-    report_appendix.py \
-      --revision $workflow.revision \
-      --commit $workflow.commitId \
-      --canned_text ${report_config} \
-      --vcf ${variants} \
-      --sample_id ${sample_id} \
-      --barcode ${barcode} \
-      --pos_coverage_file ${pos_coverage} \
-      --ntc_coverage_file ${ntc_coverage} \
-      --sample_coverage_file ${coverage} \
-      --ntc_threshold="${params.ntc_threshold}" \
-      --pos_threshold="${params.positive_threshold}" \
-      --sample_threshold="${params.sample_threshold}" \
-      --group 2 3 \
-      --style ont
-    """
-}
-
 
 process getParams {
     label "microbial"
@@ -407,9 +377,12 @@ workflow pipeline {
         // do some coverage calcs
         region_read_count = countReadsRegions(amplicons_bed, downsample[0])
 
+        // we need a channel from teh sample sheet in case teh ntc has no reads
+        sample_sheet = Channel.fromPath(params.sample_sheet).splitCsv(skip: 1, sep: ",").map{ it -> tuple("sample_id":it[1], "type":it[2], "barcode":it[0]) }
+
         // generate run report
       	report = report(
-              samples.map { it -> return it[1] }.toList(),
+              sample_sheet.collect(),
               region_read_count.bed_files.map{it[2]}.collect(),
       	      sample_fastqs.fastqstats.collect(),
               whatshap_result.map{it[2]}.collect(),
@@ -421,39 +394,31 @@ workflow pipeline {
               report_config
       	)
 
-
         // get barcodes for the called_variants channel
-        for_report = samples.map{it -> tuple(it[1].sample_id,it[1].barcode,it[0],it[1].type)}.join(whatshap_result.join(region_read_count))
+        // for_report = sample_sheet.map{it -> tuple(it[1],it[0],it[2])}.join(whatshap_result.join(region_read_count))
 
         // we want to deal with each sample with the controls so that
         // we can decide on the validity of the result
-        test_samples = for_report.filter {it[3] == "test_sample"}
-        ntc_samples = for_report.filter {it[3] == "no_template_control"}
-        positive_samples = for_report.filter {it[3] == "positive_control"}
+        // print(sample_sheet.view())
+        test_samples = sample_sheet.filter{it[0].type == "test_sample"}
+        print(test_samples.collect().view())
+        // ntc_samples = for_report.filter {it[3] == "no_template_control"}
+        // positive_samples = for_report.filter {it[3] == "positive_control"}
+
 
         // Generate single sample report
         report_single_sample = reportSingle(
               test_samples,
-              ntc_samples.map{ it[7] }.collect(),
-              positive_samples.map{ it[7] }.collect(),
-              report_config
-        )
-
-        // Generate additional single sample report on wider set of variants
-        report_appendix = reportAppendix(
-              test_samples,
-              ntc_samples.map{ it[7] }.collect(),
-              positive_samples.map{ it[7] }.collect(),
+              report.jsons.collect(),
               report_config
         )
 
         output_alignments = alignments[0].map{ it -> return tuple(it[2], it[3]) }
 
-        results = report.concat(
+        results = report.run_report.concat(
             whatshap_result.map{ it[2]}.collect(),
             output_alignments.collect(),
-            report_single_sample.collect(),
-            report_appendix.collect()
+            report_single_sample.collect()
         )
 
 
@@ -498,7 +463,7 @@ workflow {
       //get reference
     if (params.reference == null){
       params.remove('reference')
-      params._reference = projectDir.resolve("./data/primer_schemes/V2/NC_000962.3.fasta").toString()
+      params._reference = projectDir.resolve("./data/primer_schemes/V3/NC_000962.3.fasta").toString()
     } else {
       params._reference = file(params.reference, type: "file", checkIfExists:true).toString()
       params.remove('reference')
@@ -507,7 +472,7 @@ workflow {
     // Variant DB
     if (params.variant_db == null){
       params.remove('variant_db')
-      params._variant_db = projectDir.resolve("./data/primer_schemes/V2/variant_db.sorted.normalised.vcf.gz").toString()
+      params._variant_db = projectDir.resolve("./data/primer_schemes/V3/variant_db.sorted.normalised.vcf.gz").toString()
     } else {
       params._variant_db = file(params.variant_db, type: "file", checkIfExists:true).toString()
       params.remove('variant_db')
@@ -516,7 +481,7 @@ workflow {
     // Genbank
     if (params.genbank == null){
       params.remove('genbank')
-      params._genbank = projectDir.resolve("./data/primer_schemes/V2/NC_000962.3.gb").toString()
+      params._genbank = projectDir.resolve("./data/primer_schemes/V3/NC_000962.3.gb").toString()
     } else {
       params._genbank = file(params.genbank, type: "file", checkIfExists:true).toString()
       params.remove('genbank')
@@ -525,7 +490,7 @@ workflow {
     // TB amplicons
     if (params.amplicons_bed == null){
       params.remove('amplicons_bed')
-      params._amplicons_bed = projectDir.resolve("./data/primer_schemes/V2/TB_amplicons.bed").toString()
+      params._amplicons_bed = projectDir.resolve("./data/primer_schemes/V3/TB_amplicons.bed").toString()
     } else {
       params._amplicons_bed = file(params.reference, type: "file", checkIfExists:true).toString()
       params.remove('amplicons_bed')
@@ -534,7 +499,7 @@ workflow {
     // Single sample report text
     if (params.report_config == null){
       params.remove('report_config')
-      params._report_config = projectDir.resolve("./data/primer_schemes/V2/report_config.eng.json").toString()
+      params._report_config = projectDir.resolve("./data/primer_schemes/V3/report_config.eng.json").toString()
     } else {
       params._report_config = file(params.report_config, type: "file", checkIfExists:true).toString()
       params.remove('report_config')
