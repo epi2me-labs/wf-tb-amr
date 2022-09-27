@@ -97,7 +97,7 @@ def translate_triplet(triplet):
     }
     if triplet in table:
         return table[triplet]
-    return "?"
+    return f"{triplet}?"
 
 
 def reverse_translate(aa):
@@ -282,7 +282,6 @@ def get_reference_codon_seq(
         genbank: list, locus_tag: str, codon_number: int) -> list:
     """Get a reference codon sequence based on codon number."""
     # get our feature; only intrested in CDS & rRNA here
-    print(locus_tag)
     feature = [
         feature for feature in get_genbank_feature(genbank, locus_tag)
         if feature.type == 'CDS' or feature.type == 'rRNA'

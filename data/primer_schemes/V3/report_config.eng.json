@@ -160,7 +160,7 @@
       "who-class": "",
       "line":"second-line",
       "in-assay": "True",
-      "genes": ["rplC"]
+      "genes": ["rplC", "rrl"]
     },
     "CFZ":{
       "full-name": "clofazamine",

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Single sample report uses results from previous reporting step
 - Appendix report removed
 - Group 3 variants no longer reported
+- VariantDB - added ONT reviewed variants
 ### Added
 - Added coverage details to CSV
 - Warning to single sample report in the case of target failure
