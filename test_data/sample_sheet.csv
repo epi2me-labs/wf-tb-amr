@@ -1,5 +1,5 @@
 barcode,sample_id,type
-barcode92,sample,test_sample
+barcode92,sample1,test_sample
 barcode93,positive,positive_control
-barcode94,blank_1,test_sample
-barcode95,blank_2,no_template_control
+barcode94,sample2,test_sample
+barcode95,blank,no_template_control

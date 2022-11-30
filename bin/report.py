@@ -26,9 +26,9 @@ import pysam
 
 
 def controls(
-    samples: list,
-    ntc_threshold: str,
-    positive_threshold: str,
+    samples,
+    ntc_threshold,
+    positive_threshold,
     report_doc
 ):
     """Deal with controls."""
@@ -77,7 +77,7 @@ def controls(
     """)
 
 
-def check_positive(samples: dict, threshold: str, section):
+def check_positive(samples, threshold, section):
     """Output no template controls section.
 
     Args:
@@ -157,7 +157,7 @@ def check_positive(samples: dict, threshold: str, section):
     return qc_stati
 
 
-def check_no_template(samples: list, threshold: str, section):
+def check_no_template(samples, threshold, section):
     """Output no template controls section.
 
     Args:
@@ -323,7 +323,7 @@ def csv_output(amr, coverage, canned_text, csv):
 
         if coverage[sample]['qc_status'] != 'fail':
 
-            abs = ";".join(list(info['resistance']['resistant'].keys()))
+            anbs = ";".join(list(info['resistance']['resistant'].keys()))
 
             nucleotides = []
             proteins = []
@@ -349,7 +349,7 @@ def csv_output(amr, coverage, canned_text, csv):
                 ";".join([
                     ab for ab in info[
                         'antibiotics'] if info['antibiotics'][ab] == -1]),
-                abs,
+                anbs,
                 ";".join(str(x) for x in nucleotides),
                 ";".join(str(x) for x in proteins)]
 

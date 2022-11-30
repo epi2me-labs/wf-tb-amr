@@ -13,7 +13,7 @@ from common_methods import comma_separator
 import qrcode
 
 
-def make_header(section_name: str):
+def make_header(section_name):
     """Make a section header."""
     header = f"""
     <div class="row no-gutters mt-3">
@@ -32,8 +32,8 @@ def make_header(section_name: str):
 
 
 def make_result_qr_code(
-        sample_id: str, barcode: str,
-        section: report.HTMLSection, resistance: dict):
+        sample_id, barcode,
+        section, resistance):
     """Make a QR code from resistance data."""
     qr = qrcode.QRCode(
         version=4,
@@ -64,8 +64,7 @@ def make_result_qr_code(
 
 
 def make_sample_section(
-        report_doc: report, data: dict, sample_id: str,
-        resistance: dict, barcode: str):
+        report_doc, data, sample_id, resistance, barcode):
     """Make a section with sample details."""
     section = report_doc.add_section()
     section._add_item(f"""
@@ -91,8 +90,7 @@ def make_sample_section(
 
 
 def make_assay_section(
-        report_doc: report, data: dict, barcode: str,
-        revision: str, commit: str):
+        report_doc, data, barcode, revision, commit):
     """Make a section with the assay details."""
     section = report_doc.add_section()
     section._add_item(f"""
@@ -123,10 +121,7 @@ def make_assay_section(
 
 
 def make_controls_section(
-        sample: str,
-        report_doc: report,
-        coverage: dict,
-        canned_text: dict):
+        sample, report_doc, coverage, canned_text):
     """Assess coverage of controls and sample."""
     canned_statements = canned_text['sections']['controls']
 
@@ -183,8 +178,7 @@ def make_controls_section(
 
 
 def make_final_result_section(
-        section: report.HTMLSection, data: dict, antibiotics: dict,
-        resistance: dict, sample_id: str):
+        section, data, antibiotics, resistance, sample_id):
     """Make a final result section, a text describing the result."""
     antibiotics_data = list()
 
@@ -205,8 +199,8 @@ def make_final_result_section(
         ab for ab, value in resistance[
             sample_id]['amr']['antibiotics'].items() if value == -1]
     if len(failed_abs) > 0:
-        abs = [antibiotics[ab]['full-name'] for ab in failed_abs]
-        final_text = f"""Targets failed for {comma_separator(abs)}"""
+        anbs = [antibiotics[ab]['full-name'] for ab in failed_abs]
+        final_text = f"""Targets failed for {comma_separator(anbs)}"""
         section._add_item(f"""
             <div class="alert alert-brand-red">{final_text}</div>""")
 
@@ -217,8 +211,8 @@ def make_lineage_section():
 
 
 def make_drug_section(
-        report_doc: report, data: dict, antibiotics: dict, all: dict,
-        sample_id: str, barcode: str, coverage_result: dict):
+        report_doc, data, antibiotics, all_info,
+        sample_id, barcode, coverage_result):
     """Make the detailed drug/variant section."""
     section = report_doc.add_section()
 
@@ -229,7 +223,7 @@ def make_drug_section(
         section,
         data['sections']['final'],
         antibiotics,
-        all,
+        all_info,
         sample_id)
 
     section._add_item(f"""
@@ -241,7 +235,7 @@ def make_drug_section(
 
     for k, v in data['sections']['drug_susceptibility']['result'].items():
         checked = ''
-        if k == all[sample_id]['amr']['resistance']["resistance_level"]:
+        if k == all_info[sample_id]['amr']['resistance']["resistance_level"]:
             checked = " checked"
             v = f"<strong>{v}</strong>"
 
@@ -252,7 +246,7 @@ def make_drug_section(
     section._add_item("""</div>""")
 
     qr_string, b64 = make_result_qr_code(
-        sample_id, barcode, section, all[sample_id]['amr'])
+        sample_id, barcode, section, all_info[sample_id]['amr'])
 
     section._add_item(
         f"""<div class="col-2">
@@ -288,15 +282,15 @@ def make_drug_section(
                 </td>
         </tr>""")
 
-        resistance = all[sample_id]['amr']['resistance']['resistant']
+        resistance = all_info[sample_id]['amr']['resistance']['resistant']
         status_codes = {
             'resistant': [1, 2, 8],
             'susceptible': [0],
             'target_fail': [-1]}
         for status, codes in status_codes.items():
             interpretation = data['misc_language'][status]
-            abs = all[sample_id]['amr']['antibiotics']
-            for antibiotic, code in abs.items():
+            anbs = all_info[sample_id]['amr']['antibiotics']
+            for antibiotic, code in anbs.items():
                 if code not in codes:
                     continue
 
@@ -327,7 +321,7 @@ def make_drug_section(
     section._add_item("""</div>""")
 
 
-def make_disclaimer_section(report_doc: report, data: dict):
+def make_disclaimer_section(report_doc, data):
     """Make a disclaimer section."""
     section = report_doc.add_section()
     section._add_item(f"""{make_header(data["title"])}<small><ol>""")
@@ -338,7 +332,7 @@ def make_disclaimer_section(report_doc: report, data: dict):
     section._add_item("""</ol></small>""")
 
 
-def make_authorisation_section(report_doc: report, data: dict):
+def make_authorisation_section(report_doc, data):
     """Make an authorisation section."""
     section = report_doc.add_section()
     section._add_item(f"""
@@ -440,27 +434,27 @@ def main():
             data = json.load(json_data)
             jsons.append(data)
 
-    all = dict()
+    all_info = dict()
     for data in jsons:
-        all = {**all, **data}
+        all_info = {**all_info, **data}
 
     make_sample_section(
         report_doc, canned_text['sections']['sample'],
-        args.sample_id, all[args.sample_id]['amr'], args.barcode)
+        args.sample_id, all_info[args.sample_id]['amr'], args.barcode)
 
     make_assay_section(
         report_doc, canned_text['sections']['assay'], args.barcode,
         args.revision, args.commit)
 
     coverage_result = make_controls_section(
-        args.sample_id, report_doc, all, canned_text)
+        args.sample_id, report_doc, all_info, canned_text)
 
     # something has has failed coverage checks - make report and exit
     if coverage_result is not False:
 
         make_drug_section(
             report_doc, canned_text, canned_text['antibiotics'],
-            all, args.sample_id, args.barcode, coverage_result)
+            all_info, args.sample_id, args.barcode, coverage_result)
 
     make_authorisation_section(
         report_doc, canned_text['sections']['authorisation'])

@@ -6,9 +6,9 @@ to run the workflow.
 
 The workflow can currently be run using either
 [Docker](https://www.docker.com/products/docker-desktop) or
-[conda](https://docs.conda.io/en/latest/miniconda.html) to provide isolation of
+[singularity]((https://docs.sylabs.io/guides/latest/user-guide/) to provide isolation of
 the required software. Both methods are automated out-of-the-box provided
-either docker of conda is installed.
+either docker or singularity is installed.
 
 It is not required to clone or download the git repository in order to run the workflow.
 For more information on running EPI2ME Labs workflows [visit out website](https://labs.epi2me.io/wfindex).
@@ -27,6 +27,7 @@ to see the options for the workflow.
 
 The primary outputs of the workflow include:
 
-* a [FASTA](https://en.wikipedia.org/wiki/FASTA) file containing the consensus sequence for all samples,
-* a [VCF](https://en.wikipedia.org/wiki/Variant_Call_Format) file sample all samples,
-* an HTML report document detailing QC metrics and the primary findings of the workflow.
+* a HTML document detailing QC metrics and the primary findings of the workflow.
+* a CSV file containing a machine readable version of the results.
+* a [VCF](https://en.wikipedia.org/wiki/Variant_Call_Format) file for each sample.
+* a [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map) file for each sample.

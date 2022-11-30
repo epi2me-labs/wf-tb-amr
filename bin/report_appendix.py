@@ -9,7 +9,7 @@ from aplanat.util import ond_colors, ont_colors
 from common_methods import variants_table_from_vcf
 
 
-def make_header(section_name: str):
+def make_header(section_name):
     """Make a section header."""
     header = f"""
     <div class="row no-gutters mt-3">
@@ -27,7 +27,7 @@ def make_header(section_name: str):
     return header
 
 
-def make_disclaimer_section(report_doc: report, data: dict):
+def make_disclaimer_section(report_doc, data):
     """Make a disclaimer section."""
     section = report_doc.add_section()
     section._add_item(f"""{make_header(data["title"])}<small><ol>""")

@@ -3,149 +3,191 @@
     "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
     "title": "epi2me-labs/wf-tb-amr",
     "description": "TB Genotyping for Antomicrobial Resistance Detection.",
+    "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-tb-amr/wf-tb-amr-demo.tar.gz",
     "url": "https://github.com/epi2me-labs/wf-tb-amr",
     "type": "object",
     "definitions": {
-        "basic_input_output_options": {
-            "title": "Basic Input/Output Options",
+        "input": {
+            "title": "Input Options",
             "type": "object",
-            "fa_icon": "fas fa-terminal",
-            "description": "Define where the pipeline should find input data and save output data.",
+            "fa_icon": "fas fa-arrow-right",
+            "description": "Parameters for finding and handling input data for analysis.",
             "properties": {
-                "out_dir": {
-                    "type": "string",
-                    "default": "output",
-                    "format": "directory-path",
-                    "description": "Directory for output of all user-facing files."
-                },
                 "fastq": {
                     "type": "string",
                     "format": "path",
-                    "description": "A fastq file or directory containing fastq input files or directories of input files.",
-                    "help_text": "If directories named \\\"barcode*\\\" are found under the `--fastq` directory the data is assumed to be multiplex and each barcode directory will be processed independently. If `.fastq(.gz)` files are found under the `--fastq` directory the sample is assumed to not be multiplexed. In this second case `--samples` should be a simple name rather than a CSV file."
+                    "description": "FASTQ files to use in the analysis.",
+                    "help_text": "This accepts one of three cases: (i) the path to a single FASTQ file; (ii) the path to a top-level directory containing FASTQ files; (iii) the path to a directory containing one level of sub-directories which in turn contain FASTQ files. In the first and second case, a sample name can be supplied with `--sample`. In the last case, the data is assumed to be multiplexed with the names of the sub-directories as barcodes. In this case, a sample sheet can be provided with `--sample_sheet`."
                 },
-                "sample": {
-                    "type": "string",
-                    "description": "A sample name for non-multiplexed data. Permissible if passing a file or directory of .fastq(.gz)."
-                },
-                "sample_sheet": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "CSV file with columns named `barcode`, `sample_name` and `type`. Permissible if passing a directory containing barcodeXX sub-directories."
-                },
-                "sanitize_fastq": {
+                "analyse_unclassified": {
                     "type": "boolean",
-                    "description": "Use additional heuristics to identify barcodes from file paths.",
-                    "help_text": "Enabling this option will group together files into samples by the presence of strings of the form `barcodeXXX` present in filenames, rather than simply files grouped into directories (as output by MinKNOW and the Guppy basecaller)."
-                },
-                "maf": {
-                    "type": "number",
-                    "description": "Minimum mutant allele frequencey to consider.",
-                    "default": 0.1
-                },
-                "noncanonical": {
-                    "type": "boolean",
-                    "description": "Report confident noncanonical variants that overlap variants of interest.",
-                    "default": false
-                },
-                "downsample": {
-                    "type": "integer",
-                    "description": "Number of reads to downsample to in each direction, leave null for no downsampling."
-                },
-                "minimum_read_support": {
-                    "type": "integer",
-                    "description": "The minimum number of reads to consider for a variant call on each strand.",
-                    "default": 5
-                },
-                "simplified_bed": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "The location of the amplicons for the assay"
-                },
-                "amplicons_bed": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "The location of the amplicons for the assay"
-                },
-                "variant_db": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Variant db in VCF format (required)"
-                },
-                "genbank": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Genbank file for organism of interest (required)"
-                },
-                "ntc_threshold": {
-                    "type": "string",
-                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,3 - fail is more than 20 reads in more than 3 amplicons",
-                    "default": "20,3"
-                },
-                "sample_threshold": {
-                    "type": "string",
-                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,8 - fail is less than 20 reads in less than 8 amplicons",
-                    "default": "-20,8"
-                },
-                "positive_threshold": {
-                    "type": "string",
-                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,2 - fail is less than 20 reads in less than 2 amplicons",
-                    "default": "-20,2"
-                },
-                "realign": {
-                    "type": "boolean",
-                    "description": "{erform indel realignment",
-                    "hidden": true,
-                    "default": false
-                },
-                "strand_bias": {
-                    "type": "integer",
-                    "description": "Set a threshold for strand bias filtering. Strand bias is represented as a phred scaled p-value from a fishers exact test, closer to 0 is good",
-                    "default": 1000
-                },
-                "reference": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "NCBI accession for reference genome"
-                },
-                "report_config": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Report config file."
+                    "default": false,
+                    "description": "Analyse unclassified reads from input directory. By default the workflow will not process reads in the unclassified directory.",
+                    "help_text": "If selected and if the input is a multiplex directory the workflow will also process the unclassified directory."
                 }
             },
             "required": [
                 "fastq"
             ]
         },
-        "meta_data": {
-            "title": "Meta Data",
+        "samples": {
+            "title": "Sample Options",
             "type": "object",
-            "description": "",
+            "fa_icon": "fas fa-vials",
+            "description": "Parameters that relate to samples such as sample sheets and sample names.",
+            "properties": {
+                "sample_sheet": {
+                    "type": "string",
+                    "format": "path",
+                    "description": "A CSV file used to map barcodes to sample aliases. The sample sheet can be provided when the input data is a directory containing sub-directories with FASTQ files.",
+                    "help_text": "The sample sheet is a CSV file with, minimally, columns named `barcode` and `alias`. Extra columns are allowed. A `type` column is required for this workflow and should have one of the following values; `test_sample`, `positive_control`, `negative_control`, `no_template_control`."
+                },
+                "sample": {
+                    "type": "string",
+                    "description": "A single sample name for non-multiplexed data. Permissible if passing a single .fastq(.gz) file or directory of .fastq(.gz) files."
+                }
+            },
+            "required": [
+                "sample_sheet"
+            ]
+        },
+        "output": {
+            "title": "Output Options",
+            "type": "object",
+            "fa_icon": "fas fa-arrow-left",
+            "description": "Parameters for saving and naming workflow outputs.",
+            "properties": {
+                "out_dir": {
+                    "type": "string",
+                    "default": "output",
+                    "format": "directory-path",
+                    "description": "Directory for output of all workflow results."
+                }
+            }
+        },
+        "reference_options": {
+            "title": "Reference Options",
+            "type": "object",
+            "fa_icon": "far fa-question-circle",
+            "description": "Reference options relate to the reference data used in the workflow.",
+            "help_text": "These reference options do not need to be changed for typical use, but allow you to customise the underlying data to that of your choosing.",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "NCBI accession for reference genome.",
+                    "help_text": "By default the workflow uses NC_000962.3. WARNING: If you change this parameter but don't alter the variant database, Genbank file, and the amplicon BED (all generated for NC_000962.3) to match then the behaviour of the workflow is unlikely to be as expected."
+                },
+                "amplicons_bed": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "The location of the amplicons for the assay.",
+                    "help_text": "A bed file describing the location of the amplicons used to generate the data to be processed by this workflow. Based on NC_000962.3."
+                },
+                "variant_db": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Variant database in VCF format.",
+                    "help_text": "A list of variants, in VCF format, that this assay will genotype. SNPs only."
+                },
+                "genbank": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Genbank file for organism of interest.",
+                    "help_text": "Genbank file used for variant annotation, defaults to NC000962.3 annotations."
+                }
+            }
+        },
+        "advanced_options": {
+            "title": "Advanced Options",
+            "type": "object",
+            "fa_icon": "far fa-question-circle",
+            "description": "Advanced options for configuring processes inside the workflow.",
+            "help_text": "These advanced options do not need to be changed for typical use, but allow fine tuning of workflows for users who want more control over the workflow.",
+            "properties": {
+                "align_threads": {
+                    "type": "number",
+                    "description": "Number of CPU threads to use per alignment task.",
+                    "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
+                    "min": 1,
+                    "default": 4
+                },
+                "mpileup_threads": {
+                    "type": "number",
+                    "description": "Number of CPU threads to use per mpileup task.",
+                    "help_text": "The total CPU resource used by the workflow is constrained by the executor configuration.",
+                    "min": 1,
+                    "default": 4
+                },
+                "maf": {
+                    "type": "number",
+                    "description": "Minimum mutant allele frequency to consider.",
+                    "help_text": "By default the workflow will filter any variant which is present at less than 10% allele frequency (0.1). Change this parameter to alter this filtering behaviour. Minimum is set at 1%.",
+                    "default": 0.1,
+                    "min": 0.01
+                },
+                "downsample": {
+                    "type": "integer",
+                    "description": "Number of reads to downsample to in each direction, leave empty for no downsampling.",
+                    "help_text": "Downsampling can help with run times without significantly impacting the result of your analysis. By default no downsampling is performed, but you can specify the coverage which to downsample to in each direction here to a minimum of 100.",
+                    "min": 100
+                },
+                "minimum_read_support": {
+                    "type": "integer",
+                    "description": "The minimum number of reads to consider for a variant call on each strand.",
+                    "help_text": "By default the workflow expects a minimum of 5 reads on each strand supporting a variant. This is to ensure that when using the `maf` very low coverage regions do not contribute to potentially false positive variant calls.",
+                    "default": 5,
+                    "min": 1
+                },
+                "ntc_threshold": {
+                    "type": "string",
+                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,3 - fail is more than 20 reads in more than 3 amplicons.",
+                    "default": "20,3"
+                },
+                "sample_threshold": {
+                    "type": "string",
+                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons. For exmaple 20,8 means a sample will pass only if at least 20 reads were detected in each of at least 8 amplicons.",
+                    "default": "-20,8"
+                },
+                "positive_threshold": {
+                    "type": "string",
+                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,2 - fail is less than 20 reads in less than 2 amplicons.",
+                    "default": "-20,2"
+                },
+                "strand_bias": {
+                    "type": "integer",
+                    "description": "Set a threshold for strand bias filtering.",
+                    "help_text": "Strand bias is represented as a Phred scaled p-value from a Fisher's exact test, closer to 0 is good.",
+                    "default": 1000
+                },
+                "report_config": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Report configuration file.",
+                    "help_text": "The report can be configured to help with translation. See `report_config.eng.json` in the primer scheme directory. Here you can provide a path to your own report configuration file."
+                }
+            }
+        },
+        "misc": {
+            "title": "Miscellaneous Options",
+            "type": "object",
+            "description": "Everything else.",
             "default": "",
             "properties": {
-                "report_name": {
-                    "type": "string",
-                    "default": "report",
-                    "description": "Output report filename suffix."
-                },
                 "disable_ping": {
                     "type": "boolean",
                     "default": false,
                     "description": "Enable to prevent sending a workflow ping."
-                }
-            }
-        },
-        "generic_options": {
-            "title": "Generic options",
-            "type": "object",
-            "fa_icon": "far fa-question-circle",
-            "description": "Less common options for the pipeline, typically set in a config file.",
-            "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
-            "properties": {
+                },
                 "help": {
                     "type": "boolean",
                     "description": "Display help text.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
+                "version": {
+                    "type": "boolean",
+                    "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
                     "hidden": true
                 }
@@ -154,13 +196,22 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/basic_input_output_options"
+            "$ref": "#/definitions/input"
         },
         {
-            "$ref": "#/definitions/meta_data"
+            "$ref": "#/definitions/samples"
         },
         {
-            "$ref": "#/definitions/generic_options"
+            "$ref": "#/definitions/output"
+        },
+        {
+            "$ref": "#/definitions/reference_options"
+        },
+        {
+            "$ref": "#/definitions/advanced_options"
+        },
+        {
+            "$ref": "#/definitions/misc"
         }
     ],
     "properties": {
@@ -194,7 +245,7 @@
         },
         "wfversion": {
             "type": "string",
-            "default": "v1.0.10",
+            "default": "v1.0.11",
             "hidden": true
         },
         "monochrome_logs": {
@@ -209,7 +260,7 @@
         }
     },
     "docs": {
-        "intro": "## Introduction\n\n`wf-tb-amr` is a workflow for determining the antibiotic resistance of\nMycobacterium tuberculosis samples. The workflow handles multiplexed sequencing\nruns and provides clear and simple reports summarising the predicted resistance\nprofile of each sample according to genetic variants discovered.\n",
-        "links": "## Useful links\n\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [conda](https://docs.conda.io/en/latest/miniconda.html)\n"
+        "intro": "## Introduction\n\n`wf-tb-amr` is a workflow for determining the antibiotic resistance of\nMycobacterium tuberculosis targeted sequencing samples. The workflow handles\nmultiplexed sequencing runs and provides clear and simple reports summarising\nthe predicted resistance profile of each sample according to genetic variants\ndiscovered.\n\n\n###\u00a0Workflow details\n\n\n1. Align reads to NC_000962.3 reference genome (minmap2)\n2. Use mpileup to determine base composition of pre-defined variants, \"genotyping\" (bcftools)\n3. Phase variants (whatshap)\n4. Report results\n\n\n###\u00a0Required inputs\n\n\nLike all of our workflows you need to specify your input data. In this case data\nmust be provided in `.fastq(.gz)` format and it must be demultiplexed.\n\nThis workflow also requires a sample sheet which identifies which samples on the\nrun are test samples and which are controls. The sample sheet must have three\ncolumns `barcode`, `alias`, and `type`:\n\n* `barcode` - the barcode of the sample (i.e. barcode02).\n* `alias` - the unique identifier you wish to use to refer to the sample.\n* `type` - the type of sample, this can be:\n  * `test_sample` - the samples for which you wish to identify antimicrobial resistance.\n  * `positive_control` - a sample known to be positive for MTB.\n  * `no_template_control` - a PCR blank.\n\nThe controls are assessed for performance to determine the validity of the assay.\n",
+        "links": "## Useful links\n\n* [WHO Variant Catalogue](https://www.who.int/publications-detail-redirect/9789240028173)\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [singularity](https://docs.sylabs.io/guides/latest/user-guide/)\n"
     }
 }
