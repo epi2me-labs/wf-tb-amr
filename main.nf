@@ -39,7 +39,7 @@ process combineFastq {
 
 process alignReads {
     label 'microbial'
-    cpus params.threads
+    cpus params.align_threads
     input:
         tuple val(sample_id), val(type), path(sample_fastq)
         path reference
@@ -60,7 +60,7 @@ process alignReads {
 
 process downSample {
     label 'microbial'
-    cpus params.threads
+    cpus 1
     input:
         tuple val(sample_id), val(type), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
         path amplicons_bed
@@ -94,7 +94,7 @@ process downSample {
 
 process mpileup {
     label 'microbial'
-    cpus params.threads
+    cpus params.mpileup_threads
     input:
         path reference
         path vcf_template
@@ -115,7 +115,7 @@ process mpileup {
     # run mpileup
     bcftools mpileup \
       --max-depth 8000 \
-      --threads ${params.threads} \
+      --threads $task.cpus \
       -BI \
       -Q 1 \
       --ff SECONDARY,UNMAP \
@@ -221,6 +221,7 @@ process whatshap {
 
 process countReadsRegions {
     label "microbial"
+    cpus 1
     input:
         path amplicons_bed
         tuple val(sample_id), val(type), path(bam), path(bai)
@@ -283,18 +284,18 @@ process reportSingle {
     label "microbial"
     cpus 1
     input:
-      tuple val(samples)
+      val samples
       path "jsons/*"
       path report_config
     output:
-      path "${samples.sample_id}_report.html"
+      path "${samples.sample_id[0]}_report.html"
     """
     report_single_sample.py \
       --revision $workflow.revision \
       --commit $workflow.commitId \
       --canned_text ${report_config} \
-      --sample_id ${samples.sample_id} \
-      --barcode ${samples.barcode} \
+      --sample_id ${samples.sample_id[0]} \
+      --barcode ${samples.barcode[0]} \
       --jsons jsons/* \
       --ntc_threshold="${params.ntc_threshold}" \
       --pos_threshold="${params.positive_threshold}" \
@@ -361,10 +362,10 @@ workflow pipeline {
 
         // do crude downsampling
         if (params.downsample != null){
-          println("Downsampling!!!")
+          log.warn("Downsampling data to ${params.downsample} in each direction.")
           downsample = downSample(alignments[0], amplicons_bed)
         } else {
-          println("NOT Downsampling!!!")
+          log.warn("Using all data, downsampling level has not been specified.")
           downsample = alignments
         }
 
@@ -394,17 +395,7 @@ workflow pipeline {
               report_config
       	)
 
-        // get barcodes for the called_variants channel
-        // for_report = sample_sheet.map{it -> tuple(it[1],it[0],it[2])}.join(whatshap_result.join(region_read_count))
-
-        // we want to deal with each sample with the controls so that
-        // we can decide on the validity of the result
-        // print(sample_sheet.view())
         test_samples = sample_sheet.filter{it[0].type == "test_sample"}
-        print(test_samples.collect().view())
-        // ntc_samples = for_report.filter {it[3] == "no_template_control"}
-        // positive_samples = for_report.filter {it[3] == "positive_control"}
-
 
         // Generate single sample report
         report_single_sample = reportSingle(
@@ -415,9 +406,9 @@ workflow pipeline {
 
         output_alignments = alignments[0].map{ it -> return tuple(it[2], it[3]) }
 
-        results = report.run_report.concat(
-            whatshap_result.map{ it[2]}.collect(),
+        results = report.run_report.mix(
             output_alignments.collect(),
+            whatshap_result.map{ it[2]}.collect(),
             report_single_sample.collect()
         )
 
@@ -434,10 +425,7 @@ WorkflowMain.initialise(workflow, params, log)
 workflow {
 
     if (params.disable_ping == false) {
-        try {
-            Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
-        } catch(RuntimeException e1) {
-        }
+        Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
     }
 
     if (params.help) {
@@ -456,9 +444,7 @@ workflow {
     samples = fastq_ingress([
         "input":params.fastq,
         "sample":params.sample,
-        "sample_sheet":params.sample_sheet,
-        "sanitize": params.sanitize_fastq,
-        "output":params.out_dir]).filter { it[1].sample_id != "unclassified" }
+        "sample_sheet":params.sample_sheet]).filter { it[1].sample_id != "unclassified" }
 
       //get reference
     if (params.reference == null){
@@ -515,16 +501,10 @@ workflow {
 
 if (params.disable_ping == false) {
     workflow.onComplete {
-        try{
-            Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
-        }catch(RuntimeException e1) {
-        }
+        Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
     }
 
     workflow.onError {
-        try{
-            Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
-        }catch(RuntimeException e1) {
-        }
+        Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
     }
 }

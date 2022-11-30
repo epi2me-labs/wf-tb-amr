@@ -50,10 +50,11 @@ def setup_template(template, sample, args):
     template = vcf.Reader(filename=template)
 
     # add required stuff to the universal template
-    format = """##FORMAT=<ID=GT,Number=1,Type=String,
+    var_format = """##FORMAT=<ID=GT,Number=1,Type=String,
                         Description="Non-meaningful genotype">"""
     template.formats = OrderedDict(
-        [vcf.parser._vcf_metadata_parser().read_format(format_string=format)]
+        [vcf.parser._vcf_metadata_parser().read_format(
+            format_string=var_format)]
     )
     template._column_headers.append('FORMAT')
     template._column_headers.append(sample)
@@ -62,20 +63,20 @@ def setup_template(template, sample, args):
     # set by the user at run time
     new_filters = list()
 
-    DP_CUTOFF = args.dp
-    AF_CUTOFF = args.af
-    ALT_DEPTH_CUTOFF = args.alt_depth
-    STRAND_BIAS_CUTOFF = args.strand_bias
+    dp_cutoff = args.dp
+    ad_cutoff = args.af
+    alt_depth_cutoff = args.alt_depth
+    strand_bias_cutoff = args.strand_bias
 
     dp_header = f"""##FILTER=<ID=DP,Description="DP is less """ \
-        f"""than the cut-off ({DP_CUTOFF})">"""
+        f"""than the cut-off ({dp_cutoff})">"""
     af_f_header = f"""##FILTER=<ID=AF,Description="AF is less """ \
-        f"""than the cut-off ({AF_CUTOFF})">"""
+        f"""than the cut-off ({ad_cutoff})">"""
     ad_f_header = f"""##FILTER=<ID=ALT_DEPTH,Description="ALT Depth is """ \
-        f"""less than the cut-off ({ALT_DEPTH_CUTOFF})">"""
+        f"""less than the cut-off ({alt_depth_cutoff})">"""
     sb_header = f"""##FILTER=<ID=STRAND_BIAS,Description="STRAND_BIAS """ \
         f"""is greater than the cut-off """ \
-        f"""({STRAND_BIAS_CUTOFF})">"""
+        f"""({strand_bias_cutoff})">"""
 
     new_filters.append(
         vcf.parser._vcf_metadata_parser().read_filter(dp_header))
@@ -103,10 +104,10 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
     processed_records = list()
 
     # set our cutoffs
-    DP_CUTOFF = args.dp
-    AF_CUTOFF = args.af
-    ALT_DEPTH_CUTOFF = args.alt_depth
-    STRAND_BIAS_CUTOFF = args.strand_bias
+    dp_cutoff = args.dp
+    ad_cutoff = args.af
+    alt_depth_cutoff = args.alt_depth
+    strand_bias_cutoff = args.strand_bias
 
     # for every record in our pileup decide if a variant and then write
     # to whatshap vcf for phasing
@@ -123,63 +124,63 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
         #     logging.info("\tNOT IN DATABASE")
         #     continue
 
-        REASON = None
+        reason = None
         record.FILTER = list()
 
-        ref_ADF = record.INFO['ADF'][0]
-        ref_ADR = record.INFO['ADR'][0]
+        ref_adf = record.INFO['ADF'][0]
+        ref_adr = record.INFO['ADR'][0]
 
-        for count, ALT in enumerate(record.ALT):
+        for count, alt in enumerate(record.ALT):
             new_record = copy.deepcopy(record)
-            ADF = new_record.INFO['ADF'][count+1]
-            ADR = new_record.INFO['ADR'][count+1]
-            DP = new_record.INFO['DP']
+            adf = new_record.INFO['ADF'][count+1]
+            adr = new_record.INFO['ADR'][count+1]
+            dp = new_record.INFO['DP']
 
-            if DP < DP_CUTOFF:
-                REASON = "DP"
+            if dp < dp_cutoff:
+                reason = "DP"
                 logging.info(
-                    f"""\tFAILED {REASON} DP: {DP}""")
+                    f"""\tFAILED {reason} DP: {dp}""")
                 new_record.FILTER.append('DP')
-                new_record.INFO['DP'] = DP
+                new_record.INFO['DP'] = dp
 
             # calculate allele frequecny
             try:
-                AF = (ADF + ADR) / DP
+                af = (adf + adr) / dp
             except ZeroDivisionError:
-                AF = 0
+                af = 0
 
             # apply allele frequeny filter
-            if AF < AF_CUTOFF:
-                REASON = "AF"
+            if af < ad_cutoff:
+                reason = "AF"
                 logging.info(
-                    f"""\tFAILED {REASON} """
-                    f"""ALT: {ALT} FWD: {ADF} REV: {ADR} AF: {AF}""")
+                    f"""\tFAILED {reason} """
+                    f"""ALT: {alt} FWD: {adf} REV: {adr} AF: {af}""")
                 new_record.FILTER.append('AF')
-                new_record.INFO['AF'] = AF
+                new_record.INFO['AF'] = af
 
             # if total alt depth is less than a specified then apply filter
-            if ADF < ALT_DEPTH_CUTOFF:
-                REASON = "ALT_DEPTH"
+            if adf < alt_depth_cutoff:
+                reason = "ALT_DEPTH"
                 logging.info(
-                    f"""\tFAILED {REASON} """
-                    f"""ALT: {ALT} FWD: {ADF} REV: {ADR} AF: {AF}""")
+                    f"""\tFAILED {reason} """
+                    f"""ALT: {alt} FWD: {adf} REV: {adr} AF: {af}""")
                 new_record.FILTER.append('ALT_DEPTH')
-                new_record.INFO['ALT_DEPTH'] = ADF + ADR
+                new_record.INFO['ALT_DEPTH'] = adf + adr
 
-            if ADR < ALT_DEPTH_CUTOFF:
-                REASON = "ALT_DEPTH"
+            if adr < alt_depth_cutoff:
+                reason = "ALT_DEPTH"
                 logging.info(
-                    f"""\tFAILED {REASON} """
-                    f"""ALT: {ALT} FWD: {ADF} REV: {ADR} AF: {AF}""")
+                    f"""\tFAILED {reason} """
+                    f"""ALT: {alt} FWD: {adf} REV: {adr} AF: {af}""")
                 new_record.FILTER.append('ALT_DEPTH')
-                new_record.INFO['ALT_DEPTH'] = ADF + ADR
+                new_record.INFO['ALT_DEPTH'] = adf + adr
 
             # if strand bias is an issue - apply filter
             if 'IGNORE_SB' not in record.INFO:
 
                 try:
                     # do a fishers exact test
-                    d = {'forward': [ref_ADF, ADF], 'reverse': [ref_ADR, ADR]}
+                    d = {'forward': [ref_adf, adf], 'reverse': [ref_adr, adr]}
                     table = pandas.DataFrame(data=d, index=['REF', 'ALT'])
 
                     oddsr, p = fisher_exact(table, alternative='two-sided')
@@ -190,10 +191,10 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
 
                     new_record.INFO['FS_SB'] = f'{phred:.2f}'
 
-                    if phred > STRAND_BIAS_CUTOFF:
+                    if phred > strand_bias_cutoff:
                         logging.info(
-                            f"\tFAILED STRAND_BIAS {ALT} FWD: {ADF}/{ref_ADF}"
-                            f" REV: {ADR}/{ref_ADR} AF: {AF}")
+                            f"\tFAILED STRAND_BIAS {alt} FWD: {adf}/{ref_adf}"
+                            f" REV: {adr}/{ref_adr} AF: {af}")
                         new_record.FILTER.append('STRAND_BIAS')
 
                 # This case we couldn't calculate strand bias
@@ -205,10 +206,10 @@ def process_mpileup(mpileup, template, out_vcf, sample, args):
                 new_record.INFO['FS_SB'] = None
 
             # make a VCF record - we probably need more for the info field here
-            new_record.ALT = [ALT]
-            new_record.INFO['AF'] = AF
-            new_record.INFO['ADR'] = ADR
-            new_record.INFO['ADF'] = ADF
+            new_record.ALT = [alt]
+            new_record.INFO['AF'] = af
+            new_record.INFO['ADR'] = adr
+            new_record.INFO['ADF'] = adf
 
             processed_records.append(new_record)
 

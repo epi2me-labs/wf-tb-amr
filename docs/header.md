@@ -1,5 +1,5 @@
-# wf-tb-amr | MTBC Antimicrobial Resistance Testing
+# wf-tb-amr | Mycobacterium Tuberculosis Antimicrobial Resistance Identification
 
 This repository contains a [nextflow](https://www.nextflow.io/) workflow for
-running the MTBC workflow on multiplexed MinION, GridION, and
-PromethION runs.
+the identification of variants causing anti-microbial resistance in Mycobacterium
+tuberculosis targeted sequencing data.

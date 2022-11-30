@@ -7,7 +7,7 @@ import pandas as pd
 import vcf
 
 
-def call_resistance(resistance: dict, antibiotics: dict) -> str:
+def call_resistance(resistance, antibiotics):
     """Call the antibiotic resistance from variant data."""
     if len(resistance['resistant'].keys()) == 0:
         resistance['resistance_level'] = "NONE"
@@ -28,7 +28,6 @@ def call_resistance(resistance: dict, antibiotics: dict) -> str:
     # least isoniazid and rifampicin, the cornerstone medicines for the
     # treatment of TB. Rifampicin-resistant disease on its own requires
     # similar clinical management as MDR-TB.
-    print(res)
     if 'RIF' in res:
         resistance['resistance_level'] = 'RR'
 
@@ -83,8 +82,7 @@ def call_resistance(resistance: dict, antibiotics: dict) -> str:
     return resistance
 
 
-def process_resistance(
-        vcf_file: dict, antibiotics: dict, set_scores: list) -> dict:
+def process_resistance(vcf_file, antibiotics, set_scores):
     """Calculate resistance level - None, MDR or XDR."""
     result = dict(
         resistance_level=None,
@@ -123,7 +121,7 @@ def process_resistance(
     return result
 
 
-def comma_separator(sequence: list) -> str:
+def comma_separator(sequence):
     """Grammatically correct comma separated list printer."""
     if not sequence:
         return ''
@@ -140,8 +138,7 @@ def thresh_func(coverage_thresh, x):
     return (x >= int(coverage_thresh)).sum()/len(x)
 
 
-def process_coverage(
-        coverage_file: str, threshold: str, bed: str) -> dict:
+def process_coverage(coverage_file, threshold, bed):
     """Process coverage data for a sample."""
     try:
         coverage = pd.read_csv(coverage_file, sep='\t', header=None)
@@ -185,10 +182,7 @@ def process_coverage(
     return summary
 
 
-def determine_status(
-        coverage_summary: pd.DataFrame,
-        threshold: str,
-        canned_text: dict) -> dict:
+def determine_status(coverage_summary, threshold, canned_text):
     """
     Determine amplicon coverage status.
 
@@ -254,8 +248,7 @@ def determine_status(
     return result
 
 
-def variants_table_from_vcf(
-        vcf_file: str, info_fields: list, confidence: list) -> pd.DataFrame:
+def variants_table_from_vcf(vcf_file, info_fields, confidence):
     """Give a VCF file return a pandas data frame."""
     vcf_reader = vcf.Reader(open(vcf_file, 'r'))
 
@@ -292,7 +285,7 @@ def variants_table_from_vcf(
     return df
 
 
-def convert_who_confidence(who_confidence: str) -> int:
+def convert_who_confidence(who_confidence):
     """
     Convert WHO confidence rating.
 
@@ -319,7 +312,7 @@ def process_sample_coverage(
         ntc_threshold,
         positive_threshold,
         bed,
-        canned_text) -> dict:
+        canned_text):
     """Process inputs and make some decisions on QC."""
     bed_ext = "bedtools-coverage.bed"
 
@@ -363,11 +356,7 @@ def process_sample_coverage(
     return sample_coverage
 
 
-def process_sample_amr(
-        metadata: str,
-        coverage: dict,
-        variant_dir: str,
-        canned_text: dict):
+def process_sample_amr(metadata, coverage, variant_dir, canned_text):
     """For a set of samples process AMR."""
     vcf_ext = 'final.vcf'
 

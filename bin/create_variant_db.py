@@ -3,13 +3,13 @@
 Take the WHO varinats excel and make a VCF.
 
 After running:
-bcftools sort `pwd`/data/primer_schemes/V2/variant_db.vcf \
-    > `pwd`/data/primer_schemes/V2/variant_db.sorted.vcf
-docker run -v `pwd`/data/primer_schemes/V2:/data -it zlskidmore/vt \
+bcftools sort `pwd`/data/primer_schemes/V5/variant_db.vcf \
+    > `pwd`/data/primer_schemes/V5/variant_db.sorted.vcf
+docker run -v `pwd`/data/primer_schemes/V5:/data -it zlskidmore/vt \
     vt normalize -r /data/NC_000962.3.fasta /data/variant_db.sorted.vcf \
     -o /data/variant_db.sorted.normalised.vcf
-bgzip `pwd`/data/primer_schemes/V2/variant_db.sorted.normalised.vcf
-tabix `pwd`/data/primer_schemes/V2/variant_db.sorted.normalised.vcf.gz
+bgzip `pwd`/data/primer_schemes/V5/variant_db.sorted.normalised.vcf
+tabix `pwd`/data/primer_schemes/V5/variant_db.sorted.normalised.vcf.gz
 """
 import argparse
 from collections import OrderedDict
@@ -33,11 +33,11 @@ def load_cmdline_params():
     who_file = "WHO-UCN-GTB-PCI-2021.7-eng.xlsx"
     primer_schemes = "data/primer_schemes/"
 
-    fasta = f"{primer_schemes}/V2/NC_000962.3.fasta"
-    genbank = f"{primer_schemes}/V2/NC_000962.3.gb"
+    fasta = f"{primer_schemes}/V5/NC_000962.3.fasta"
+    genbank = f"{primer_schemes}/V5/NC_000962.3.gb"
     template = "data/template.vcf"
-    bed = f"{primer_schemes}/V2/TB_amplicons.bed"
-    database = f"{primer_schemes}/V2/variant_db.vcf"
+    bed = f"{primer_schemes}/V5/TB_amplicons.bed"
+    database = f"{primer_schemes}/V5/variant_db.vcf"
 
     parser = argparse.ArgumentParser(
         description='''Create VCF from WHO xlsx file''')
@@ -130,7 +130,7 @@ def reverse_translate(aa):
         return table[aa]
 
 
-def get_url_data(url: str):
+def get_url_data(url):
     """Get data from a url. We use this to retrive the WHO data."""
     user_agent = """Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7)
         Gecko/2009021910 Firefox/3.0.7"""
@@ -139,7 +139,7 @@ def get_url_data(url: str):
     return urllib.request.urlopen(request).read()
 
 
-def get_who_data(who_variants: str, who_sheet: str) -> pd.core.frame.DataFrame:
+def get_who_data(who_variants, who_sheet):
     """Get WHO data from url or local file into a pd dataframe."""
     # Open the WHO mutations into a pandas dataframe
     if os.path.isfile(who_variants):
@@ -196,7 +196,7 @@ def get_who_data(who_variants: str, who_sheet: str) -> pd.core.frame.DataFrame:
     return who
 
 
-def process_genbank(genbank_file: str) -> list:
+def process_genbank(genbank_file):
     """
     Process genbank.
 
@@ -214,7 +214,7 @@ def process_genbank(genbank_file: str) -> list:
     return recs[0]
 
 
-def get_compliment(base: str) -> str:
+def get_compliment(base):
     """Compliment a DNA base."""
     compliment_table = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
     return compliment_table[base]
@@ -231,15 +231,14 @@ def check_reference_codon(position, base):
 
 
 def check_mutant_codon(
-        genbank: list, locus_tag: str, codon_number: int, position: int,
-        mutant_codon: str, alt_base: str):
+        genbank, locus_tag, codon_number, position,
+        mutant_codon, alt_base):
     """Check a mutant codon by creating it de novo."""
     # get the refrence codon using genbank
     reference_codon = get_reference_codon_seq(
         genbank,
         locus_tag,
-        codon_number
-    )
+        codon_number)
 
     # now mutate the reference codon based on position and alt_base
     mutant_codon_check = make_mutant_codon(
@@ -247,8 +246,7 @@ def check_mutant_codon(
         locus_tag,
         reference_codon,
         position,
-        alt_base
-    )
+        alt_base)
 
     # make it into a format we can compare
     our_mutant_codon = ''.join([i[1] for i in mutant_codon_check])
@@ -262,7 +260,7 @@ def check_mutant_codon(
             {mutant_codon} {alt_base} {mutant_codon_check} {e}""")
 
 
-def check_reference_aa(features: list, codon: int, aa: str):
+def check_reference_aa(features, codon, aa):
     """Check if the reference AA is correct."""
     # get our feature; only intrested in CDS here
     feature = [feature for feature in features if feature.type == 'CDS'][0]
@@ -279,7 +277,7 @@ def check_reference_aa(features: list, codon: int, aa: str):
 
 
 def get_reference_codon_seq(
-        genbank: list, locus_tag: str, codon_number: int) -> list:
+        genbank, locus_tag, codon_number):
     """Get a reference codon sequence based on codon number."""
     # get our feature; only intrested in CDS & rRNA here
     feature = [
@@ -312,8 +310,8 @@ def get_codon_from_ref_position(genbank, position):
 
 
 def make_mutant_codon(
-        genbank, locus_tag: str, reference_codon: list,
-        position: int, alt_base: list) -> list:
+        genbank, locus_tag, reference_codon,
+        position, alt_base):
     """Given a refercence codon and a genomic mutation position and base(s)."""
     # get our feature, again onluy interest in CDS
     feature = [
@@ -371,7 +369,6 @@ def prepare_vcf_header(template_vcf_file, args):
     # for each of our arguments add them to a list for use in the new header
     for i in vars(args):
         if type(vars(args)[i]) is not list:
-            print(type(vars(args)[i]))
             if os.path.isfile(vars(args)[i]):
                 md5 = hashlib.md5(
                     pathlib.Path(vars(args)[i]).read_bytes()).hexdigest()
@@ -404,7 +401,7 @@ def prepare_vcf_header(template_vcf_file, args):
     return vcf_reader
 
 
-def load_bed_file(bed_file) -> pd.core.frame.DataFrame:
+def load_bed_file(bed_file):
     """Load a bed file."""
     # read bed file into pandas dataframe
     bed = pd.read_csv(bed_file, sep='\t', header=None)
@@ -415,8 +412,7 @@ def load_bed_file(bed_file) -> pd.core.frame.DataFrame:
     return bed
 
 
-def check_poistion_in_bed(
-        position: int, bed: pd.core.frame.DataFrame) -> bool:
+def check_poistion_in_bed(position, bed):
     """
     Check position.
 
@@ -430,14 +426,14 @@ def check_poistion_in_bed(
 
 
 def parse_who(
-        who_variants: str,
-        who_sheet: str,
-        template_vcf_file: str,
-        output_vcf_file: str,
-        genbank_file: str,
-        resistance_level: int,
-        bed_file: str,
-        git: str,
+        who_variants,
+        who_sheet,
+        template_vcf_file,
+        output_vcf_file,
+        genbank_file,
+        resistance_level,
+        bed_file,
+        git,
         args):
     """Parse the WHO mutation catalogue into a useable (VCF) format."""
     # get our genbank file
@@ -567,7 +563,6 @@ def parse_who(
             FORMAT=None,
             sample_indexes=None
         )
-        print(record)
         vcf_writer.write_record(record)
     vcf_writer.close()
 

@@ -134,8 +134,6 @@ def combine_phased_variants(sample, phase_group, codon, variants):
     except AttributeError:
         strand = "Positive"
 
-    print(strand)
-
     if strand == "Negative":
         dna = Seq(ref_codon)
         ref_codon = dna.reverse_complement()
@@ -245,10 +243,11 @@ def process_whathap(sample, phased_vcf, template_file, out_vcf):
     template = vcf.Reader(filename=template_file)
 
     # add required stuff to the universal template
-    format = """##FORMAT=<ID=GT,Number=1,Type=String,
+    format_field = """##FORMAT=<ID=GT,Number=1,Type=String,
                         Description="Non-meaningful genotype">"""
     template.formats = OrderedDict(
-        [vcf.parser._vcf_metadata_parser().read_format(format_string=format)]
+        [vcf.parser._vcf_metadata_parser().read_format(
+            format_string=format_field)]
     )
     template._column_headers.append('FORMAT')
     template._column_headers.append(sample)
