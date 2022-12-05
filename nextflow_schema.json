@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
     "title": "epi2me-labs/wf-tb-amr",
-    "description": "TB Genotyping for Antomicrobial Resistance Detection.",
+    "description": "Mycobacterium tuberculosis workflow for multiplexed Nanopore sequencing data.",
     "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-tb-amr/wf-tb-amr-demo.tar.gz",
     "url": "https://github.com/epi2me-labs/wf-tb-amr",
     "type": "object",
@@ -245,7 +245,7 @@
         },
         "wfversion": {
             "type": "string",
-            "default": "v1.0.11",
+            "default": "v1.0.12",
             "hidden": true
         },
         "monochrome_logs": {
