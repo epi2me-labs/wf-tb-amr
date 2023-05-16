@@ -3,6 +3,10 @@
 This repository contains a [nextflow](https://www.nextflow.io/) workflow for
 the identification of variants causing anti-microbial resistance in Mycobacterium
 tuberculosis targeted sequencing data.
+
+
+
+
 ## Introduction
 
 `wf-tb-amr` is a workflow for determining the antibiotic resistance of
@@ -39,6 +43,10 @@ columns `barcode`, `alias`, and `type`:
   * `no_template_control` - a PCR blank.
 
 The controls are assessed for performance to determine the validity of the assay.
+
+
+
+
 ## Quickstart
 
 The workflow uses [nextflow](https://www.nextflow.io/) to manage compute and
@@ -72,6 +80,10 @@ The primary outputs of the workflow include:
 * a CSV file containing a machine readable version of the results.
 * a [VCF](https://en.wikipedia.org/wiki/Variant_Call_Format) file for each sample.
 * a [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map) file for each sample.
+
+
+
+
 ## Useful links
 
 * [WHO Variant Catalogue](https://www.who.int/publications-detail-redirect/9789240028173)

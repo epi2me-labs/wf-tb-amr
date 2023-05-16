@@ -1,4 +1,4 @@
-barcode,sample_id,type
+barcode,alias,type
 barcode92,sample1,test_sample
 barcode93,positive,positive_control
 barcode94,sample2,test_sample

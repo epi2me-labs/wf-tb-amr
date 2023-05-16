@@ -4,6 +4,7 @@
     "title": "epi2me-labs/wf-tb-amr",
     "description": "Mycobacterium tuberculosis workflow for multiplexed Nanopore sequencing data.",
     "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-tb-amr/wf-tb-amr-demo.tar.gz",
+    "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-tb-amr/wf-tb-amr-demo/aws.nextflow.config",
     "url": "https://github.com/epi2me-labs/wf-tb-amr",
     "type": "object",
     "definitions": {
@@ -241,11 +242,6 @@
         },
         "_report_config": {
             "type": "string",
-            "hidden": true
-        },
-        "wfversion": {
-            "type": "string",
-            "default": "v1.0.13",
             "hidden": true
         },
         "monochrome_logs": {
