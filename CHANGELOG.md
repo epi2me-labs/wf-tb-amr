@@ -1,8 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [v1.0.14]
+### Fixed
+- Updated whole workflow to bring up-to-date with recent template changes
+
+### Added
+- Configuration for running demo data in AWS
 
 ## [v1.0.13]
 ### Fixed

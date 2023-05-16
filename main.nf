@@ -22,21 +22,6 @@ process getVersions {
 }
 
 
-process combineFastq {
-    label 'microbial'
-    cpus 1
-    input:
-        tuple path(directory), val(meta)
-    output:
-        tuple val(meta.sample_id), val(meta.type), path("${meta.sample_id}.fastq.gz"), emit: sample
-        path "${meta.sample_id}.stats", emit: fastqstats
-    """
-    fastcat -s ${meta.sample_id} -r ${meta.sample_id}.stats -x ${directory} | seqkit seq -m 200 - > ${meta.sample_id}.fastq
-    gzip ${meta.sample_id}.fastq
-    """
-}
-
-
 process alignReads {
     label 'microbial'
     cpus params.align_threads
@@ -137,7 +122,7 @@ process mpileup {
 
 
     # call variants from pileup
-    process_mpileup.py \
+    workflow-glue process_mpileup \
       --template ${vcf_template} \
       --mpileup ${sample_id}.mpileup.vcf.gz.norm.vcf \
       --out_vcf ${sample_id}.mpileup.annotated.processed.vcf \
@@ -192,7 +177,7 @@ process whatshap {
     vcf-annotator ${sample_id}.phased.vcf ${genbank} > ${sample_id}.phased.codon.vcf
 
     # process phased variants
-    process_whatshap.py \
+    workflow-glue process_whatshap \
       --phased_vcf ${sample_id}.phased.codon.vcf \
       --out_vcf ${sample_id}.phased.processed.vcf \
       --template ${vcf_template} \
@@ -259,7 +244,7 @@ process report {
     """
     echo '${metadata}' > metadata.json
     mkdir jsons
-    report.py \
+    workflow-glue report \
         --revision $workflow.revision \
         --commit $workflow.commitId \
         --per_barcode_stats per_barcode_stats/* \
@@ -290,7 +275,7 @@ process reportSingle {
     output:
       path "${samples.sample_id[0]}_report.html"
     """
-    report_single_sample.py \
+    workflow-glue report_single_sample \
       --revision $workflow.revision \
       --commit $workflow.commitId \
       --canned_text ${report_config} \
@@ -349,16 +334,16 @@ workflow pipeline {
         bcf_annotate_template
         report_config
     main:
+        samples_for_processing = samples.map {it -> [it[0].alias, it[0].type, it[1]]}
+        fastcat_stats = samples.map {it -> it[2]}
 
         software_versions = getVersions()
 
         workflow_params = getParams()
 
-        // combine fastq files
-        sample_fastqs = combineFastq(samples)
-
         // do alignment
-        alignments = alignReads(sample_fastqs.sample, reference)
+        //alignments = alignReads(sample_fastqs.sample, reference)
+        alignments = alignReads(samples_for_processing, reference)
 
         // do crude downsampling
         if (params.downsample != null){
@@ -385,7 +370,7 @@ workflow pipeline {
       	report = report(
               sample_sheet.collect(),
               region_read_count.bed_files.map{it[2]}.collect(),
-      	      sample_fastqs.fastqstats.collect(),
+              samples | map { it[2].resolve("per-read-stats.tsv") } | collectFile(keepHeader: true),
               whatshap_result.map{it[2]}.collect(),
       	      workflow_params,
               alignments.bamstats.collect(),
@@ -444,7 +429,9 @@ workflow {
     samples = fastq_ingress([
         "input":params.fastq,
         "sample":params.sample,
-        "sample_sheet":params.sample_sheet]).filter { it[1].sample_id != "unclassified" }
+        "sample_sheet":params.sample_sheet,
+        "fastcat_stats":true ])
+        // "sample_sheet":params.sample_sheet]).filter { it[1].sample_id != "unclassified" }
 
       //get reference
     if (params.reference == null){
