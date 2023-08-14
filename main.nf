@@ -482,7 +482,7 @@ workflow {
     bcf_annotate_template = projectDir.resolve("./data/bcftools_annotate_header.txt").toString()
 
     pipeline(samples, file(params._reference), file(params._amplicons_bed), file(params._variant_db), file(params._genbank), file(vcf_template), file(bcf_annotate_template), file(params._report_config))
-
+    
     output(pipeline.out.results)
 }
 
