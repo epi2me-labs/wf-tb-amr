@@ -16,6 +16,7 @@
             "properties": {
                 "fastq": {
                     "type": "string",
+                    "title": "FASTQ",
                     "format": "path",
                     "description": "FASTQ files to use in the analysis.",
                     "help_text": "This accepts one of three cases: (i) the path to a single FASTQ file; (ii) the path to a top-level directory containing FASTQ files; (iii) the path to a directory containing one level of sub-directories which in turn contain FASTQ files. In the first and second case, a sample name can be supplied with `--sample`. In the last case, the data is assumed to be multiplexed with the names of the sub-directories as barcodes. In this case, a sample sheet can be provided with `--sample_sheet`."
@@ -81,12 +82,14 @@
                 },
                 "amplicons_bed": {
                     "type": "string",
+                    "title": "Amplicons BED",
                     "format": "file-path",
                     "description": "The location of the amplicons for the assay.",
                     "help_text": "A bed file describing the location of the amplicons used to generate the data to be processed by this workflow. Based on NC_000962.3."
                 },
                 "variant_db": {
                     "type": "string",
+                    "title": "Variant database",
                     "format": "file-path",
                     "description": "Variant database in VCF format.",
                     "help_text": "A list of variants, in VCF format, that this assay will genotype. SNPs only."
@@ -122,6 +125,7 @@
                 },
                 "maf": {
                     "type": "number",
+                    "title": "Minimum mutant AF",
                     "description": "Minimum mutant allele frequency to consider.",
                     "help_text": "By default the workflow will filter any variant which is present at less than 10% allele frequency (0.1). Change this parameter to alter this filtering behaviour. Minimum is set at 1%.",
                     "default": 0.1,
@@ -142,6 +146,7 @@
                 },
                 "ntc_threshold": {
                     "type": "string",
+                    "title": "No Template Control threshold",
                     "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,3 - fail is more than 20 reads in more than 3 amplicons.",
                     "default": "20,3"
                 },
@@ -163,6 +168,7 @@
                 },
                 "report_config": {
                     "type": "string",
+                    "title": "Report configuration",
                     "format": "file-path",
                     "description": "Report configuration file.",
                     "help_text": "The report can be configured to help with translation. See `report_config.eng.json` in the primer scheme directory. Here you can provide a path to your own report configuration file."
