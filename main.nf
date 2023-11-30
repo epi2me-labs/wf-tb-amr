@@ -4,12 +4,13 @@ import groovy.json.JsonBuilder
 nextflow.enable.dsl = 2
 
 
-include { fastq_ingress } from './lib/fastqingress'
+include { fastq_ingress } from './lib/ingress'
 
 
 process getVersions {
     label "microbial"
     cpus 1
+    memory "1 GB"
     output:
         path "versions.txt"
     script:
@@ -25,6 +26,7 @@ process getVersions {
 process alignReads {
     label 'microbial'
     cpus params.align_threads
+    memory "12 GB"
     input:
         tuple val(sample_id), val(type), path(sample_fastq)
         path reference
@@ -46,6 +48,7 @@ process alignReads {
 process downSample {
     label 'microbial'
     cpus 1
+    memory "1 GB"
     input:
         tuple val(sample_id), val(type), path("${sample_id}.bam"), path("${sample_id}.bam.bai")
         path amplicons_bed
@@ -80,13 +83,14 @@ process downSample {
 process mpileup {
     label 'microbial'
     cpus params.mpileup_threads
+    memory "12 GB"
     input:
         path reference
         path vcf_template
         path bcf_annotate_template
         tuple val(sample_id), val(type), path(bam), path(bam_index)
         path variant_db
-        path varinat_db_index
+        path variant_db_index
         path genbank
         path amplicons_bed
     output:
@@ -141,7 +145,8 @@ process mpileup {
 
 process whatshap {
     label 'microbial'
-    cpus 1
+    cpus 4
+    memory "12 GB"
     input:
         path reference
         path genbank
@@ -173,7 +178,7 @@ process whatshap {
       cp ${vcf_template} ${sample_id}.phased.vcf
     fi
 
-    # add codon numbers to those variants which are noit in our db but we want to phase because they could affect the same codon
+    # add codon numbers to those variants which are not in our db but we want to phase because they could affect the same codon
     vcf-annotator ${sample_id}.phased.vcf ${genbank} > ${sample_id}.phased.codon.vcf
 
     # process phased variants
@@ -207,6 +212,7 @@ process whatshap {
 process countReadsRegions {
     label "microbial"
     cpus 1
+    memory "1 GB"
     input:
         path amplicons_bed
         tuple val(sample_id), val(type), path(bam), path(bai)
@@ -222,10 +228,11 @@ process countReadsRegions {
 process report {
     label "microbial"
     cpus 1
+    memory "2 GB"
     input:
         val metadata
         path "bed_files/*"
-	      path "per_barcode_stats/*"
+        path "per_barcode_stats/?.gz"
         path "variants/*"
         path "params.json"
         path "pickedreads/*"
@@ -268,6 +275,7 @@ process report {
 process reportSingle {
     label "microbial"
     cpus 1
+    memory "2 GB"
     input:
       val samples
       path "jsons/*"
@@ -293,6 +301,7 @@ process reportSingle {
 process getParams {
     label "microbial"
     cpus 1
+    memory "1 GB"
     output:
         path "params.json"
     script:
@@ -310,7 +319,8 @@ process getParams {
 process output {
     // publish inputs to output directory
     label "microbial"
-
+    cpus 1
+    memory "2 GB"
     publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
     input:
         path fname
@@ -336,13 +346,12 @@ workflow pipeline {
     main:
         samples_for_processing = samples.map {it -> [it[0].alias, it[0].type, it[1]]}
         fastcat_stats = samples.map {it -> it[2]}
-
+        
         software_versions = getVersions()
 
         workflow_params = getParams()
 
         // do alignment
-        //alignments = alignReads(sample_fastqs.sample, reference)
         alignments = alignReads(samples_for_processing, reference)
 
         // do crude downsampling
@@ -363,14 +372,14 @@ workflow pipeline {
         // do some coverage calcs
         region_read_count = countReadsRegions(amplicons_bed, downsample[0])
 
-        // we need a channel from teh sample sheet in case teh ntc has no reads
+        // we need a channel from the sample sheet in case the NTC has no reads
         sample_sheet = Channel.fromPath(params.sample_sheet).splitCsv(skip: 1, sep: ",").map{ it -> tuple("sample_id":it[1], "type":it[2], "barcode":it[0]) }
 
         // generate run report
       	report = report(
               sample_sheet.collect(),
               region_read_count.bed_files.map{it[2]}.collect(),
-              samples | map { it[2].resolve("per-read-stats.tsv") } | collectFile(keepHeader: true),
+              samples.map { it[2].resolve("per-read-stats.tsv.gz") }.toList(),
               whatshap_result.map{it[2]}.collect(),
       	      workflow_params,
               alignments.bamstats.collect(),
@@ -409,9 +418,7 @@ workflow pipeline {
 WorkflowMain.initialise(workflow, params, log)
 workflow {
 
-    if (params.disable_ping == false) {
-        Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
-    }
+    Pinguscript.ping_start(nextflow, workflow, params)
 
     if (params.help) {
         helpMessage()
@@ -430,7 +437,7 @@ workflow {
         "input":params.fastq,
         "sample":params.sample,
         "sample_sheet":params.sample_sheet,
-        "fastcat_stats":true ])
+        "stats":true ])
         // "sample_sheet":params.sample_sheet]).filter { it[1].sample_id != "unclassified" }
 
       //get reference
@@ -486,12 +493,12 @@ workflow {
     output(pipeline.out.results)
 }
 
-if (params.disable_ping == false) {
-    workflow.onComplete {
-        Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
-    }
 
-    workflow.onError {
-        Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
-    }
+workflow.onComplete {
+  Pinguscript.ping_complete(nextflow, workflow, params)
 }
+
+workflow.onError {
+  Pinguscript.ping_error(nextflow, workflow, params)
+}
+

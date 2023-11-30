@@ -1,0 +1,52 @@
+{
+  "files": {
+    "workflow-report": {
+      "filepath": "./wf-tb-amr-report.html",
+      "title": "Workflow report",
+      "description": "The report for all samples in the workflow run",
+      "mime-type": "text/html",
+      "optional": false,
+      "type": "aggregated"
+    },
+    "workflow-csv-summary": {
+      "filepath": "./wf-tb-amr-report.csv",
+      "title": "Workflow CSV results summary",
+      "description": "The CSV summary of the results of the workflow",
+      "mime-type": "text/csv",
+      "optional": false,
+      "type": "aggregated"
+    },
+    "alignment": {
+      "filepath": "./{{ alias }}.bam",
+      "title": "Alignment",
+      "description": "Aligned reads for the sample in BAM format",
+      "mime-type": "application/x-gzip",
+      "optional": false,
+      "type": "per-sample"
+    },
+    "alignment-index": {
+      "filepath": "./{{ alias }}.bam.bai",
+      "title": "Alignment index",
+      "description": "An index file for the alignment in BAI format",
+      "mime-type": "application/x-gzip",
+      "optional": false,
+      "type": "per-sample"
+    },
+    "variants": {
+      "filepath": "./{{ alias }}.final.vcf",
+      "title": "Variants",
+      "description": "Called, annotated variants for the sample.",
+      "mime-type": "text/plain",
+      "optional": false,
+      "type": "per-sample"
+    },
+    "per-sample-report": {
+      "filepath": "./{{ alias }}_report.html",
+      "title": "Per sample report",
+      "description": "The report for a single sample",
+      "mime-type": "text/html",
+      "optional": false,
+      "type": "per-sample"
+    }
+  }
+}

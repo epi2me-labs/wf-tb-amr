@@ -2,6 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
     "title": "epi2me-labs/wf-tb-amr",
+    "workflow_title": "Mycobacterium tuberculosis workflow",
     "description": "Mycobacterium tuberculosis workflow for multiplexed Nanopore sequencing data.",
     "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-tb-amr/wf-tb-amr-demo.tar.gz",
     "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-tb-amr/wf-tb-amr-demo/aws.nextflow.config",
@@ -42,7 +43,7 @@
                     "type": "string",
                     "format": "file-path",
                     "description": "A CSV file used to map barcodes to sample aliases. The sample sheet can be provided when the input data is a directory containing sub-directories with FASTQ files.",
-                    "help_text": "The sample sheet is a CSV file with, minimally, columns named `barcode` and `alias`. Extra columns are allowed. A `type` column is required for this workflow and should have one of the following values; `test_sample`, `positive_control`, `negative_control`, `no_template_control`."
+                    "help_text": "The sample sheet is a CSV file with, minimally, columns named `barcode` and `alias`. Extra columns are allowed. A `type` column is required for this workflow and should have one of the following values; `test_sample`, `positive_control`, `no_template_control`."
                 },
                 "sample": {
                     "type": "string",
@@ -78,14 +79,14 @@
                     "type": "string",
                     "format": "file-path",
                     "description": "NCBI accession for reference genome.",
-                    "help_text": "By default the workflow uses NC_000962.3. WARNING: If you change this parameter but don't alter the variant database, Genbank file, and the amplicon BED (all generated for NC_000962.3) to match then the behaviour of the workflow is unlikely to be as expected."
+                    "help_text": "By default the workflow uses NC_000962.3. WARNING: If you change this parameter but don't alter the variant database, Genbank file, and the amplicon BED (all generated for NC_000962.3) to match, then the behaviour of the workflow is unlikely to be as expected."
                 },
                 "amplicons_bed": {
                     "type": "string",
                     "title": "Amplicons BED",
                     "format": "file-path",
                     "description": "The location of the amplicons for the assay.",
-                    "help_text": "A bed file describing the location of the amplicons used to generate the data to be processed by this workflow. Based on NC_000962.3."
+                    "help_text": "A BED file describing the location of the amplicons used to generate the data to be processed by this workflow. Based on NC_000962.3."
                 },
                 "variant_db": {
                     "type": "string",
@@ -134,13 +135,13 @@
                 "downsample": {
                     "type": "integer",
                     "description": "Number of reads to downsample to in each direction, leave empty for no downsampling.",
-                    "help_text": "Downsampling can help with run times without significantly impacting the result of your analysis. By default no downsampling is performed, but you can specify the coverage which to downsample to in each direction here to a minimum of 100.",
+                    "help_text": "Downsampling can help with run times without significantly impacting the result of your analysis. By default no downsampling is performed, but you can specify the coverage to downsample to in each direction here, to a minimum of 100.",
                     "min": 100
                 },
                 "minimum_read_support": {
                     "type": "integer",
                     "description": "The minimum number of reads to consider for a variant call on each strand.",
-                    "help_text": "By default the workflow expects a minimum of 5 reads on each strand supporting a variant. This is to ensure that when using the `maf` very low coverage regions do not contribute to potentially false positive variant calls.",
+                    "help_text": "By default the workflow expects a minimum of 5 reads on each strand supporting a variant. This is to ensure that when using the `maf`, very low coverage regions do not contribute to potentially false positive variant calls.",
                     "default": 5,
                     "min": 1
                 },
@@ -152,7 +153,7 @@
                 },
                 "sample_threshold": {
                     "type": "string",
-                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons. For exmaple 20,8 means a sample will pass only if at least 20 reads were detected in each of at least 8 amplicons.",
+                    "description": "Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons. For example 20,8 means a sample will pass only if at least 20 reads were detected in each of at least 8 amplicons.",
                     "default": "-20,8"
                 },
                 "positive_threshold": {
@@ -163,7 +164,7 @@
                 "strand_bias": {
                     "type": "integer",
                     "description": "Set a threshold for strand bias filtering.",
-                    "help_text": "Strand bias is represented as a Phred scaled p-value from a Fisher's exact test, closer to 0 is good.",
+                    "help_text": "Strand bias is represented as a Phred scaled p-value from a Fisher's exact test, with a value close to 0 being preferable.",
                     "default": 1000
                 },
                 "report_config": {
@@ -190,13 +191,15 @@
                     "type": "boolean",
                     "description": "Display help text.",
                     "fa_icon": "fas fa-question-circle",
-                    "hidden": true
+                    "hidden": true,
+                    "default": false
                 },
                 "version": {
                     "type": "boolean",
                     "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
-                    "hidden": true
+                    "hidden": true,
+                    "default": false
                 }
             }
         }
@@ -260,6 +263,18 @@
         "show_hidden_params": {
             "type": "boolean"
         }
+    },
+    "resources": {
+        "recommended": {
+            "cpus": 16,
+            "memory": "32GB"
+        },
+        "minimum": {
+            "cpus": 8,
+            "memory": "16GB"
+        },
+        "run_time": "5 minutes per sample",
+        "arm_support": true
     },
     "docs": {
         "intro": "## Introduction\n\n`wf-tb-amr` is a workflow for determining the antibiotic resistance of\nMycobacterium tuberculosis targeted sequencing samples. The workflow handles\nmultiplexed sequencing runs and provides clear and simple reports summarising\nthe predicted resistance profile of each sample according to genetic variants\ndiscovered.\n\n\n###\u00a0Workflow details\n\n\n1. Align reads to NC_000962.3 reference genome (minmap2)\n2. Use mpileup to determine base composition of pre-defined variants, \"genotyping\" (bcftools)\n3. Phase variants (whatshap)\n4. Report results\n\n\n###\u00a0Required inputs\n\n\nLike all of our workflows you need to specify your input data. In this case data\nmust be provided in `.fastq(.gz)` format and it must be demultiplexed.\n\nThis workflow also requires a sample sheet which identifies which samples on the\nrun are test samples and which are controls. The sample sheet must have three\ncolumns `barcode`, `alias`, and `type`:\n\n* `barcode` - the barcode of the sample (i.e. barcode02).\n* `alias` - the unique identifier you wish to use to refer to the sample.\n* `type` - the type of sample, this can be:\n  * `test_sample` - the samples for which you wish to identify antimicrobial resistance.\n  * `positive_control` - a sample known to be positive for MTB.\n  * `no_template_control` - a PCR blank.\n\nThe controls are assessed for performance to determine the validity of the assay.\n",
