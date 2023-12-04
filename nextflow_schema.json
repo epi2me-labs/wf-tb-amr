@@ -275,9 +275,5 @@
         },
         "run_time": "5 minutes per sample",
         "arm_support": true
-    },
-    "docs": {
-        "intro": "## Introduction\n\n`wf-tb-amr` is a workflow for determining the antibiotic resistance of\nMycobacterium tuberculosis targeted sequencing samples. The workflow handles\nmultiplexed sequencing runs and provides clear and simple reports summarising\nthe predicted resistance profile of each sample according to genetic variants\ndiscovered.\n\n\n###\u00a0Workflow details\n\n\n1. Align reads to NC_000962.3 reference genome (minmap2)\n2. Use mpileup to determine base composition of pre-defined variants, \"genotyping\" (bcftools)\n3. Phase variants (whatshap)\n4. Report results\n\n\n###\u00a0Required inputs\n\n\nLike all of our workflows you need to specify your input data. In this case data\nmust be provided in `.fastq(.gz)` format and it must be demultiplexed.\n\nThis workflow also requires a sample sheet which identifies which samples on the\nrun are test samples and which are controls. The sample sheet must have three\ncolumns `barcode`, `alias`, and `type`:\n\n* `barcode` - the barcode of the sample (i.e. barcode02).\n* `alias` - the unique identifier you wish to use to refer to the sample.\n* `type` - the type of sample, this can be:\n  * `test_sample` - the samples for which you wish to identify antimicrobial resistance.\n  * `positive_control` - a sample known to be positive for MTB.\n  * `no_template_control` - a PCR blank.\n\nThe controls are assessed for performance to determine the validity of the assay.\n",
-        "links": "## Useful links\n\n* [WHO Variant Catalogue](https://www.who.int/publications-detail-redirect/9789240028173)\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [singularity](https://docs.sylabs.io/guides/latest/user-guide/)\n"
     }
 }

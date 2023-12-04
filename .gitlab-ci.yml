@@ -11,7 +11,6 @@ variables:
     NF_WORKFLOW_OPTS: "--fastq test_data/fastq --sample_sheet test_data/sample_sheet.csv"
     NF_IGNORE_PROCESSES: "downSample"
     CI_FLAVOUR: "new"
-
 # pytest:
 #     image: ubuntu:20.04
 #     stage: preflight

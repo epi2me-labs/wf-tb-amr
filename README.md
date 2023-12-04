@@ -21,12 +21,12 @@ discovered.
 Recommended requirements:
 
 + CPUs = 16
-+ memory = 32GB
++ Memory = 32GB
 
-Minimum requirement:
+Minimum requirements:
 
 + CPUs = 8
-+ memory = 16GB
++ Memory = 16GB
 
 Approximate run time: 5 minutes per sample
 
@@ -39,7 +39,7 @@ ARM processor support: True
 
 <!---Nextflow text remains the same across workflows, update example cmd and demo data sections.--->
 
-These are instructions to install and run the workflow on command line. You can also access the workflow via the [EPI2ME application](https://labs.epi2me.io/downloads/).  
+These are instructions to install and run the workflow on command line. You can also access the workflow via the [EPI2ME application](https://labs.epi2me.io/downloads/).
 
 The workflow uses [nextflow](https://www.nextflow.io/) to manage compute and software resources, therefore nextflow will need to be installed before attempting to run the workflow. 
 
@@ -194,7 +194,7 @@ The workflow outputs an HTML report with overall results for all samples in the 
 
 <!---Frequently asked questions, pose any known limitations as FAQ's.--->
 
-If your question is not answered here, please report any issues or suggestions on the [github issues](https://github.com/epi2me-labs/wf-template/issues) page or start a discussion on the [community](https://community.nanoporetech.com/).
+If your question is not answered here, please report any issues or suggestions on the [github issues](https://github.com/epi2me-labs/wf-tb-amr/issues) page or start a discussion on the [community](https://community.nanoporetech.com/).
 
 
 
