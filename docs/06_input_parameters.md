@@ -14,6 +14,13 @@
 | sample | string | A single sample name for non-multiplexed data. Permissible if passing a single .fastq(.gz) file or directory of .fastq(.gz) files. |  |  |
 
 
+### Output Options
+
+| Nextflow parameter name  | Type | Description | Help | Default |
+|--------------------------|------|-------------|------|---------|
+| out_dir | string | Directory for output of all workflow results. |  | output |
+
+
 ### Reference Options
 
 | Nextflow parameter name  | Type | Description | Help | Default |
@@ -38,12 +45,5 @@
 | positive_threshold | string | Comma separated string of x,y - where x is the read count threshold and y is the number of amplicons i.e. 20,2 - fail is less than 20 reads in less than 2 amplicons. |  | -20,2 |
 | strand_bias | integer | Set a threshold for strand bias filtering. | Strand bias is represented as a Phred scaled p-value from a Fisher's exact test, with a value close to 0 being preferable. | 1000 |
 | report_config | string | Report configuration file. | The report can be configured to help with translation. See `report_config.eng.json` in the primer scheme directory. Here you can provide a path to your own report configuration file. |  |
-
-
-### Miscellaneous Options
-
-| Nextflow parameter name  | Type | Description | Help | Default |
-|--------------------------|------|-------------|------|---------|
-| disable_ping | boolean | Enable to prevent sending a workflow ping. |  | False |
 
 
