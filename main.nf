@@ -437,7 +437,8 @@ workflow {
         "input":params.fastq,
         "sample":params.sample,
         "sample_sheet":params.sample_sheet,
-        "stats":true ])
+        "stats":true,
+        "per_read_stats":true ])
         // "sample_sheet":params.sample_sheet]).filter { it[1].sample_id != "unclassified" }
 
       //get reference

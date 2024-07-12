@@ -38,6 +38,7 @@ def main(args):
     barcodes = []
     aliases = []
     sample_types = []
+    analysis_groups = []
     allowed_sample_types = [
         "test_sample", "positive_control", "negative_control", "no_template_control"
     ]
@@ -51,7 +52,7 @@ def main(args):
         with open(args.sample_sheet, "r", encoding=encoding) as f:
             try:
                 # Excel files don't throw any error until here
-                csv.Sniffer().sniff(f.read(100))
+                csv.Sniffer().sniff(f.readline())
                 f.seek(0)  # return to initial position again
             except Exception as e:
                 # Excel fails with UniCode error
@@ -89,6 +90,10 @@ def main(args):
                     sys.exit()
                 try:
                     sample_types.append(row["type"])
+                except KeyError:
+                    pass
+                try:
+                    analysis_groups.append(row["analysis_group"])
                 except KeyError:
                     pass
     except Exception as e:
@@ -136,6 +141,14 @@ def main(args):
                     sys.stdout.write(
                         f"Sample sheet requires at least 1 of {required_type}")
                     sys.exit()
+    if analysis_groups:
+        # if there was a "analysis_group" column, make sure it had values for all
+        # samples
+        if not all(analysis_groups):
+            sys.stdout.write(
+                "if an 'analysis_group' column exists, it needs values in each row"
+            )
+            sys.exit()
 
     logger.info(f"Checked sample sheet {args.sample_sheet}.")
 
