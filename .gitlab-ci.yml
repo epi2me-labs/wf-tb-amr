@@ -11,6 +11,8 @@ variables:
     NF_WORKFLOW_OPTS: "--fastq test_data/fastq --sample_sheet test_data/sample_sheet.csv"
     NF_IGNORE_PROCESSES: "downSample"
     CI_FLAVOUR: "new"
+    PYTEST_CONTAINER_NAME: "wf-tb-amr-v1"
+    PYTEST_CONTAINER_CONFIG_KEY: "container_sha="
 # pytest:
 #     image: ubuntu:20.04
 #     stage: preflight
