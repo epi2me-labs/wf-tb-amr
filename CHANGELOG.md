@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated documentation
 - Reconciled workflow with wf-template v5.2.6
+- Updated aplanat to v0.6.20
 
 ## [v1.0.15]
 ### Changed
