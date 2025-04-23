@@ -1,5 +1,14 @@
 <!---This section of documentation typically contains a list of things the workflow can perform also any other intro.--->
 
+> This workflow is deprecated. It is not longer proactively 
+> maintained; and reactive maintainance is sporadic and low priority for our
+> developers. Although the repository is still available, it is now unsupported
+> and we do not recommend its use. Please contact support@nanoporetech.com for
+> help with your application.
+> 
+> For a more actively maintained workflow, please consider our Oxford Nanopore
+> Technologies' [AmPORE-TB product](https://nanoporetech.com/ond/documentation/ampore-tb).
+
 `wf-tb-amr` is a workflow for determining the antibiotic resistance of
 Mycobacterium tuberculosis targeted sequencing samples. The workflow handles
 multiplexed sequencing runs and provides clear and simple reports summarising
