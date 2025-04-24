@@ -12,8 +12,9 @@ developers. Although the repository is still available, it is now unsupported
 and we do not recommend its use. Please contact support@nanoporetech.com for
 help with your application.
 
-For a more actively maintained workflow, please consider our Oxford Nanopore
-Technologies' [AmPORE-TB product](https://nanoporetech.com/ond/documentation/ampore-tb).
+For a more actively maintained workflow, please consider the
+[AmPORE-TB](https://info.biomerieux.com/ampore-tb-next-generation-dna-sequencing.html)
+product from bioMérieux.
 
 ### Changed
 - Reconciled workflow with wf-template v5.3.0
